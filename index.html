@@ -1,2 +1,810 @@
+
 <!DOCTYPE html>
-<html><body><h1>MeliTrends</h1></body></html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MeliTrends — Product Intelligence para MercadoLibre</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@500;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+--bg:#060B14;--bg2:#0B1121;--card:#0F172A;--surf:#1E293B;--bord:#1E2D42;--bord2:#2A3F5F;
+--acc:#00E5B0;--acc2:rgba(0,229,176,0.12);--acc3:rgba(0,229,176,0.20);
+--sec:#4DA8DA;--yel:#FFD166;--red:#EF6461;--pur:#B07CFF;--ora:#FF8C42;
+--tx:#F1F5F9;--tx2:#94A3B8;--tx3:#5A6B80;--pos:#34D399;--neg:#F87171;
+}
+.light{
+--bg:#F8FAFC;--bg2:#F1F5F9;--card:#FFFFFF;--surf:#E2E8F0;--bord:#CBD5E1;--bord2:#E2E8F0;
+--acc:#059669;--acc2:rgba(5,150,105,0.08);--acc3:rgba(5,150,105,0.15);
+--sec:#2563EB;--yel:#D97706;--red:#DC2626;--pur:#7C3AED;--ora:#EA580C;
+--tx:#0F172A;--tx2:#475569;--tx3:#94A3B8;--pos:#059669;--neg:#DC2626;
+}
+html,body{height:100%;background:var(--bg);color:var(--tx);font-family:'Sora',sans-serif;overflow-x:hidden}
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+.fade{animation:fadeUp .6s ease forwards}
+.fade1{animation:fadeUp .6s ease .1s both}
+.fade2{animation:fadeUp .6s ease .2s both}
+.fade3{animation:fadeUp .6s ease .3s both}
+.fade4{animation:fadeUp .6s ease .5s both}
+
+/* ─── NAV ─── */
+.nav{position:sticky;top:0;z-index:200;display:flex;align-items:center;justify-content:space-between;padding:0 32px;height:64px;background:rgba(6,11,20,.88);backdrop-filter:blur(20px);border-bottom:1px solid transparent;transition:border-color .3s}
+.nav.scrolled{border-bottom-color:var(--bord)}
+.light .nav{background:rgba(248,250,252,.88)}
+.logo{display:flex;align-items:center;gap:10px;cursor:pointer}
+.logo-icon{width:34px;height:34px;border-radius:9px;background:linear-gradient(135deg,var(--acc),var(--sec));display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:800;color:#060B14}
+.logo-name{font-size:17px;font-weight:700;letter-spacing:-.3px}
+.logo-name span{color:var(--acc)}
+.nav-links{display:flex;gap:28px}
+.nav-links a{color:var(--tx2);text-decoration:none;font-size:13px;font-weight:500;transition:color .2s}
+.nav-links a:hover{color:var(--tx)}
+.nav-actions{display:flex;align-items:center;gap:10px}
+.theme-toggle{width:42px;height:22px;border-radius:11px;border:1px solid var(--bord);background:var(--surf);cursor:pointer;position:relative;padding:0;flex-shrink:0;transition:background .3s}
+.theme-dot{width:16px;height:16px;border-radius:50%;background:var(--acc);position:absolute;top:2px;left:2px;transition:left .3s;font-size:9px;display:flex;align-items:center;justify-content:center}
+.btn{padding:8px 20px;border-radius:9px;font-size:13px;font-weight:600;cursor:pointer;font-family:'Sora',sans-serif;transition:all .2s;border:1px solid var(--bord);background:transparent;color:var(--tx2)}
+.btn:hover{border-color:var(--bord2);color:var(--tx)}
+.btn-primary{background:var(--acc);color:#060B14;border:none}
+.btn-primary:hover{opacity:.88;transform:translateY(-1px)}
+.btn-sm{padding:7px 16px;font-size:12px}
+
+/* ─── HERO ─── */
+#landing{min-height:100vh;background:var(--bg)}
+.hero{padding:120px 32px 80px;max-width:1100px;margin:0 auto;text-align:center;position:relative}
+.hero-badge{display:inline-flex;align-items:center;gap:7px;padding:6px 16px;border-radius:20px;background:var(--acc2);border:1px solid rgba(0,229,176,.2);margin-bottom:24px;font-size:11px;font-weight:600;color:var(--acc);font-family:'IBM Plex Mono',monospace;letter-spacing:.04em}
+.pulse-dot{width:6px;height:6px;border-radius:50%;background:var(--acc);animation:pulse 2s infinite;display:inline-block}
+.hero h1{font-size:clamp(34px,5.5vw,64px);font-weight:800;line-height:1.07;letter-spacing:-2px;margin-bottom:20px}
+.hero h1 .grad{background:linear-gradient(135deg,var(--acc),var(--sec));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.hero p{font-size:clamp(15px,2vw,18px);color:var(--tx2);max-width:540px;margin:0 auto 36px;line-height:1.65}
+.hero-ctas{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-bottom:60px}
+.btn-hero{padding:14px 32px;border-radius:11px;font-size:15px;font-weight:700;cursor:pointer;font-family:'Sora',sans-serif;transition:all .25s}
+.btn-hero-primary{background:var(--acc);color:#060B14;border:none;box-shadow:0 4px 24px var(--acc3)}
+.btn-hero-primary:hover{opacity:.9;transform:translateY(-2px)}
+.btn-hero-sec{background:transparent;border:1px solid var(--bord);color:var(--tx2)}
+.btn-hero-sec:hover{border-color:var(--bord2);color:var(--tx)}
+.orb{position:absolute;border-radius:50%;filter:blur(80px);pointer-events:none}
+
+/* ─── MOCKUP ─── */
+.mockup-wrap{max-width:780px;margin:0 auto;background:var(--card);border:1px solid var(--bord);border-radius:16px;padding:20px;box-shadow:0 24px 80px rgba(0,0,0,.4)}
+.mockup-bar{display:flex;gap:6px;align-items:center;margin-bottom:14px}
+.mdot{width:9px;height:9px;border-radius:50%}
+.murl{font-size:11px;color:var(--tx3);margin-left:10px;font-family:'IBM Plex Mono',monospace}
+.m4{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:12px}
+.mcard{background:var(--surf);border-radius:9px;padding:12px;text-align:center}
+.ml{font-size:9px;color:var(--tx3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px}
+.mv{font-size:18px;font-weight:700;font-family:'IBM Plex Mono',monospace}
+.mbars{display:flex;align-items:flex-end;gap:3px;height:64px;background:var(--surf);border-radius:8px;padding:6px}
+
+/* ─── STATS ─── */
+.stats{background:var(--bg2);border-top:1px solid var(--bord);border-bottom:1px solid var(--bord)}
+.stats-inner{max-width:1100px;margin:0 auto;padding:32px;display:grid;grid-template-columns:repeat(4,1fr);gap:20px;text-align:center}
+.stat-val{font-size:32px;font-weight:800;font-family:'IBM Plex Mono',monospace;letter-spacing:-1px}
+.stat-lbl{font-size:13px;color:var(--tx2);margin-top:4px}
+
+/* ─── SECTIONS ─── */
+.section{max-width:1100px;margin:0 auto;padding:80px 32px}
+.sec-tag{font-size:11px;font-weight:700;color:var(--acc);text-transform:uppercase;letter-spacing:.15em;font-family:'IBM Plex Mono',monospace;margin-bottom:10px}
+.sec-title{font-size:clamp(24px,3.5vw,40px);font-weight:700;letter-spacing:-.5px;margin-bottom:12px}
+.sec-sub{font-size:15px;color:var(--tx2);max-width:440px;margin:0 auto;line-height:1.6}
+
+/* ─── FEATURES ─── */
+.feat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:48px}
+@media(max-width:768px){.feat-grid{grid-template-columns:1fr}}
+.feat-card{padding:24px;border-radius:14px;border:1px solid var(--bord);background:var(--card);transition:all .3s;cursor:default}
+.feat-card:hover{border-color:rgba(0,229,176,.35);transform:translateY(-3px)}
+.feat-icon{width:46px;height:46px;border-radius:11px;background:var(--acc2);display:flex;align-items:center;justify-content:center;font-size:20px;color:var(--acc);margin-bottom:14px}
+.feat-title{font-size:16px;font-weight:700;margin-bottom:8px}
+.feat-desc{font-size:13px;color:var(--tx2);line-height:1.6}
+
+/* ─── PRICING ─── */
+.price-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-top:48px;align-items:start}
+@media(max-width:768px){.price-grid{grid-template-columns:1fr}}
+.price-card{padding:28px;border-radius:16px;border:1px solid var(--bord);background:var(--card);position:relative;overflow:hidden}
+.price-card.pop{border-color:rgba(0,229,176,.45);box-shadow:0 8px 40px var(--acc3);transform:scale(1.03)}
+.pop-badge{position:absolute;top:14px;right:-26px;background:var(--acc);color:#060B14;font-size:10px;font-weight:700;padding:4px 32px;transform:rotate(45deg);font-family:'IBM Plex Mono',monospace}
+.plan-name{font-size:12px;font-weight:700;color:var(--tx3);text-transform:uppercase;letter-spacing:.12em;margin-bottom:4px}
+.plan-desc{font-size:13px;color:var(--tx2);margin-bottom:16px}
+.plan-price{font-size:44px;font-weight:800;font-family:'IBM Plex Mono',monospace;letter-spacing:-2px;margin-bottom:4px}
+.plan-period{font-size:14px;color:var(--tx3);font-weight:400}
+.plan-features{display:flex;flex-direction:column;gap:10px;margin-top:20px}
+.plan-feat{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--tx2)}
+.plan-feat::before{content:"✓";color:var(--acc);flex-shrink:0;font-weight:700}
+
+/* ─── TESTIMONIALS ─── */
+.testi-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:48px}
+@media(max-width:768px){.testi-grid{grid-template-columns:1fr}}
+.testi-card{padding:24px;border-radius:14px;border:1px solid var(--bord);background:var(--card)}
+.testi-quote{font-size:28px;color:var(--acc);opacity:.35;margin-bottom:10px;line-height:1}
+.testi-text{font-size:14px;color:var(--tx2);line-height:1.7;margin-bottom:18px}
+.testi-av{width:40px;height:40px;border-radius:10px;background:linear-gradient(135deg,rgba(0,229,176,.25),rgba(77,168,218,.25));display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:var(--acc);flex-shrink:0}
+.testi-name{font-size:13px;font-weight:600}
+.testi-role{font-size:11px;color:var(--tx3)}
+
+/* ─── CTA / FOOTER ─── */
+.cta-section{background:var(--bg2);border-top:1px solid var(--bord);text-align:center}
+.footer{border-top:1px solid var(--bord);padding:40px 32px}
+.footer-inner{max-width:1100px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:20px}
+.footer-links{display:flex;gap:24px}
+.footer-links a{font-size:12px;color:var(--tx3);text-decoration:none;transition:color .2s}
+.footer-links a:hover{color:var(--tx2)}
+
+/* ─── MODALS ─── */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.65);backdrop-filter:blur(10px);z-index:999;display:none;align-items:center;justify-content:center;padding:20px}
+.overlay.open{display:flex}
+.modal{background:var(--card);border:1px solid var(--bord);border-radius:18px;padding:36px;width:100%;max-width:420px;position:relative;animation:fadeUp .3s ease}
+.modal-close{position:absolute;top:14px;right:14px;background:var(--surf);border:1px solid var(--bord);border-radius:8px;width:28px;height:28px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:13px;color:var(--tx2)}
+.modal-logo{width:48px;height:48px;border-radius:12px;background:linear-gradient(135deg,var(--acc),var(--sec));display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:800;color:#060B14;margin:0 auto 16px}
+.modal h3{font-size:22px;font-weight:700;text-align:center;margin-bottom:6px}
+.modal-sub{font-size:13px;color:var(--tx2);text-align:center;margin-bottom:24px}
+.field{margin-bottom:14px}
+.field label{font-size:12px;font-weight:600;color:var(--tx2);display:block;margin-bottom:6px}
+.field input{width:100%;padding:10px 14px;border-radius:10px;border:1px solid var(--bord);background:var(--surf);color:var(--tx);font-family:'Sora',sans-serif;font-size:14px;outline:none;transition:border-color .2s}
+.field input:focus{border-color:var(--acc)}
+.modal-alt{text-align:center;font-size:13px;color:var(--tx3);margin-top:12px}
+.modal-alt span{color:var(--acc);cursor:pointer;font-weight:600}
+
+/* ─── ONBOARDING ─── */
+.ob-modal{max-width:500px;text-align:center}
+.ob-prog{display:flex;gap:6px;justify-content:center;margin-bottom:28px}
+.ob-bar{height:4px;border-radius:2px;transition:all .4s}
+.ob-icon{font-size:48px;margin-bottom:14px}
+.ob-title{font-size:22px;font-weight:700;margin-bottom:8px}
+.ob-desc{font-size:14px;color:var(--tx2);line-height:1.6;margin-bottom:24px;max-width:360px;margin-left:auto;margin-right:auto}
+.ob-opts{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-bottom:28px}
+.ob-opt{padding:8px 16px;border-radius:10px;border:1px solid var(--bord);background:transparent;color:var(--tx2);font-size:13px;font-weight:600;cursor:pointer;font-family:'Sora',sans-serif;transition:all .2s}
+.ob-opt.sel{border-color:rgba(0,229,176,.5);background:var(--acc2);color:var(--acc)}
+.ob-btns{display:flex;gap:10px;justify-content:center}
+
+/* ─── DASHBOARD ─── */
+#dashboard{display:none;height:100vh;flex-direction:column;background:var(--bg)}
+#dashboard.open{display:flex}
+.dash-wrap{display:flex;flex:1;overflow:hidden}
+.sidebar{width:220px;min-width:220px;background:var(--bg2);border-right:1px solid var(--bord);display:flex;flex-direction:column;transition:width .3s,min-width .3s;overflow:hidden}
+.sidebar.col{width:56px;min-width:56px}
+.sb-head{display:flex;align-items:center;gap:10px;padding:16px;border-bottom:1px solid var(--bord);cursor:pointer}
+.sb-icon-logo{width:30px;height:30px;border-radius:8px;background:linear-gradient(135deg,var(--acc),var(--sec));display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;color:#060B14;flex-shrink:0}
+.sb-name{font-size:14px;font-weight:700;white-space:nowrap;transition:opacity .2s}
+.sidebar.col .sb-name{opacity:0;pointer-events:none}
+.sb-nav{padding:8px;flex:1;overflow-y:auto}
+.sb-lbl{font-size:10px;font-weight:600;color:var(--tx3);text-transform:uppercase;letter-spacing:.08em;padding:10px 8px 4px;white-space:nowrap;transition:opacity .2s}
+.sidebar.col .sb-lbl{opacity:0}
+.sb-item{display:flex;align-items:center;gap:9px;padding:9px 10px;border-radius:8px;cursor:pointer;transition:all .2s;color:var(--tx2);margin-bottom:1px;white-space:nowrap}
+.sb-item:hover{background:var(--surf);color:var(--tx)}
+.sb-item.act{background:var(--acc2);color:var(--acc)}
+.sb-ico{width:16px;text-align:center;flex-shrink:0;font-size:14px}
+.sb-lbl2{font-size:13px;font-weight:500;overflow:hidden;transition:opacity .2s}
+.sidebar.col .sb-lbl2{opacity:0;width:0}
+.sb-badge{margin-left:auto;background:var(--red);color:#fff;font-size:9px;font-weight:700;padding:1px 6px;border-radius:8px;flex-shrink:0;transition:opacity .2s}
+.sidebar.col .sb-badge{opacity:0}
+.sb-footer{padding:12px;border-top:1px solid var(--bord)}
+.sb-user{display:flex;align-items:center;gap:8px;padding:8px;border-radius:8px;cursor:pointer;transition:background .2s}
+.sb-user:hover{background:var(--surf)}
+.sb-av{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--acc),var(--sec));display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#060B14;flex-shrink:0}
+.sb-uinfo{overflow:hidden;transition:opacity .2s}
+.sidebar.col .sb-uinfo{opacity:0;width:0}
+.sb-uname{font-size:12px;font-weight:600;white-space:nowrap}
+.sb-uplan{font-size:10px;color:var(--acc);font-weight:600}
+.logout{font-size:11px;color:var(--tx3);text-align:center;margin-top:8px;cursor:pointer;padding:4px;transition:color .2s}
+.sidebar.col .logout{display:none}
+.logout:hover{color:var(--neg)}
+
+/* ─── DASH MAIN ─── */
+.dash-main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.topbar{height:54px;background:var(--bg2);border-bottom:1px solid var(--bord);display:flex;align-items:center;padding:0 20px;gap:12px;flex-shrink:0}
+.page-ttl{font-size:15px;font-weight:700;flex:1}
+.searchbox{display:flex;align-items:center;gap:7px;background:var(--surf);border:1px solid var(--bord);border-radius:8px;padding:6px 12px;width:210px}
+.searchbox input{background:none;border:none;outline:none;color:var(--tx);font-family:'Sora',sans-serif;font-size:13px;width:100%}
+.searchbox input::placeholder{color:var(--tx3)}
+.ico-btn{width:32px;height:32px;border-radius:8px;background:var(--surf);border:1px solid var(--bord);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:14px;color:var(--tx2);flex-shrink:0;transition:all .2s}
+.ico-btn:hover{background:var(--card)}
+.exp-btn{display:flex;align-items:center;gap:6px;padding:7px 16px;border-radius:8px;background:var(--acc);color:#060B14;font-family:'Sora',sans-serif;font-size:13px;font-weight:700;cursor:pointer;border:none;transition:all .2s;white-space:nowrap}
+.exp-btn:hover{opacity:.9}
+.dcontent{flex:1;overflow-y:auto;padding:20px;background:var(--bg)}
+.dcontent::-webkit-scrollbar{width:4px}
+.dcontent::-webkit-scrollbar-thumb{background:var(--bord);border-radius:2px}
+
+/* ─── DASH CARDS ─── */
+.dcard{background:var(--card);border:1px solid var(--bord);border-radius:12px;padding:18px}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}
+.g2{display:grid;grid-template-columns:2fr 1fr;gap:14px;margin-bottom:16px}
+.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px}
+.g11{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px}
+@media(max-width:900px){.g4{grid-template-columns:repeat(2,1fr)}.g2,.g11{grid-template-columns:1fr}.g3{grid-template-columns:1fr}}
+.m-lbl{font-size:10px;font-weight:600;color:var(--tx3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:7px}
+.m-val{font-size:24px;font-weight:700;margin-bottom:4px}
+.m-delta{font-size:11px;font-weight:600}
+.ct{font-size:13px;font-weight:700;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center}
+.ct a{font-size:11px;color:var(--acc);cursor:pointer;font-weight:500;text-decoration:none}
+.live-dot{width:7px;height:7px;border-radius:50%;background:var(--pos);display:inline-block;margin-right:6px;animation:pulse 2s infinite}
+
+/* ─── TABLE ─── */
+.dtable{width:100%;border-collapse:collapse}
+.dtable th{font-size:10px;font-weight:600;color:var(--tx3);text-transform:uppercase;letter-spacing:.06em;padding:6px 8px;border-bottom:1px solid var(--bord);text-align:left}
+.dtable td{padding:9px 8px;border-bottom:1px solid var(--bord);font-size:13px;vertical-align:middle}
+.dtable tr:last-child td{border-bottom:none}
+.dtable tr:hover td{background:var(--surf)}
+.sbar{height:4px;background:var(--surf);border-radius:2px;margin-top:3px;overflow:hidden}
+.sfill{height:100%;border-radius:2px;background:var(--acc)}
+.badge{display:inline-flex;padding:2px 7px;border-radius:6px;font-size:10px;font-weight:700}
+.bg{background:rgba(52,211,153,.15);color:var(--pos)}
+.br{background:rgba(248,113,113,.15);color:var(--neg)}
+.by{background:rgba(255,209,102,.15);color:var(--yel)}
+.bb{background:rgba(77,168,218,.15);color:var(--sec)}
+.bp{background:rgba(176,124,255,.15);color:var(--pur)}
+
+/* ─── ALERTS ─── */
+.al{display:flex;gap:10px;padding:12px;border-radius:10px;margin-bottom:8px;border:1px solid transparent}
+.al-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;margin-top:4px}
+.al-title{font-size:13px;font-weight:600;margin-bottom:3px}
+.al-desc{font-size:12px;color:var(--tx2);line-height:1.5}
+.al-time{font-size:10px;color:var(--tx3);margin-top:3px;font-family:'IBM Plex Mono',monospace}
+
+/* ─── COMP BARS ─── */
+.cbar-row{margin-bottom:12px}
+.cbar-lbl{display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px}
+.cbar-track{height:6px;background:var(--surf);border-radius:3px;overflow:hidden}
+.cbar-fill{height:100%;border-radius:3px;transition:width 1s ease}
+
+/* ─── CHARTS ─── */
+.ch-wrap{position:relative;width:100%}
+
+/* ─── SCREENS ─── */
+.screen{display:none}
+.screen.act{display:block;animation:fadeUp .35s ease}
+
+/* ─── KEYWORD COMP ─── */
+.kw-inputs{display:flex;flex-direction:column;gap:8px;margin-bottom:14px}
+.kw-row{display:flex;gap:8px}
+.kw-row input{flex:1;background:var(--surf);border:1px solid var(--bord);border-radius:8px;padding:8px 12px;color:var(--tx);font-family:'Sora',sans-serif;font-size:13px;outline:none;transition:border-color .2s}
+.kw-row input:focus{border-color:var(--acc)}
+
+/* ─── ALERT FORM ─── */
+.ff label{font-size:12px;font-weight:600;color:var(--tx2);display:block;margin-bottom:6px}
+.ff select,.ff input[type=text]{width:100%;background:var(--surf);border:1px solid var(--bord);color:var(--tx);padding:9px 12px;border-radius:8px;font-family:'Sora',sans-serif;font-size:13px;outline:none;margin-bottom:12px}
+
+/* ─── PDF OVERLAY ─── */
+.pdf-ov{position:absolute;inset:0;background:rgba(0,0,0,.65);backdrop-filter:blur(8px);z-index:50;display:none;align-items:center;justify-content:center;padding:20px}
+.pdf-ov.open{display:flex}
+.pdf-box{background:var(--card);border:1px solid var(--bord);border-radius:16px;padding:32px;max-width:360px;width:100%;text-align:center}
+.pdf-checks{display:flex;flex-direction:column;gap:8px;text-align:left;margin:16px 0}
+.pdf-check{display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer}
+.pdf-btns{display:flex;gap:10px;margin-top:4px}
+</style>
+</head>
+<body>
+
+<!-- ══════════════════ LANDING ══════════════════ -->
+<div id="landing">
+  <nav class="nav" id="nav">
+    <div class="logo">
+      <div class="logo-icon">M</div>
+      <div class="logo-name">Meli<span>Trends</span></div>
+    </div>
+    <div class="nav-links">
+      <a href="#features">Features</a>
+      <a href="#pricing">Pricing</a>
+      <a href="#testimonios">Testimonios</a>
+    </div>
+    <div class="nav-actions">
+      <button class="theme-toggle" onclick="toggleTheme()"><div class="theme-dot" id="tdot">🌙</div></button>
+      <button class="btn btn-sm" onclick="openModal('login')">Iniciar Sesión</button>
+      <button class="btn btn-primary btn-sm" onclick="openModal('signup')">Registrarse</button>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <section style="position:relative;overflow:hidden">
+    <div class="orb" style="width:400px;height:400px;top:60px;left:5%;background:rgba(0,229,176,0.05);animation:float 7s ease-in-out infinite"></div>
+    <div class="orb" style="width:280px;height:280px;top:180px;right:5%;background:rgba(77,168,218,0.06);animation:float 9s ease-in-out 1s infinite"></div>
+    <div class="hero">
+      <div class="hero-badge fade"><span class="pulse-dot"></span>PRODUCT INTELLIGENCE PARA MERCADOLIBRE</div>
+      <h1 class="fade1">Encontrá el próximo<br><span class="grad">producto ganador</span></h1>
+      <p class="fade2">Analizá tendencias, detectá nichos rentables y anticipate a tu competencia con datos en tiempo real de los 5 marketplaces de MercadoLibre.</p>
+      <div class="hero-ctas fade3">
+        <button class="btn-hero btn-hero-primary" onclick="openModal('signup')">Empezar Gratis →</button>
+        <button class="btn-hero btn-hero-sec" onclick="openModal('login')">Ver Demo</button>
+      </div>
+      <div class="mockup-wrap fade4">
+        <div class="mockup-bar">
+          <div class="mdot" style="background:var(--red)"></div>
+          <div class="mdot" style="background:var(--yel)"></div>
+          <div class="mdot" style="background:var(--pos)"></div>
+          <span class="murl">melitrends.app/dashboard</span>
+        </div>
+        <div class="m4">
+          <div class="mcard"><div class="ml">Búsquedas</div><div class="mv" style="color:var(--acc)">984K</div></div>
+          <div class="mcard"><div class="ml">Oportunidades</div><div class="mv" style="color:var(--yel)">47</div></div>
+          <div class="mcard"><div class="ml">Sellers</div><div class="mv" style="color:var(--sec)">2,750</div></div>
+          <div class="mcard"><div class="ml">Score</div><div class="mv" style="color:var(--pos)">87/100</div></div>
+        </div>
+        <div class="mbars" id="heroBars"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- STATS -->
+  <div class="stats">
+    <div class="stats-inner">
+      <div><div class="stat-val">2.4M</div><div class="stat-lbl">Productos analizados</div></div>
+      <div><div class="stat-val">12K+</div><div class="stat-lbl">Sellers activos</div></div>
+      <div><div class="stat-val">5</div><div class="stat-lbl">Países cubiertos</div></div>
+      <div><div class="stat-val">94%</div><div class="stat-lbl">Precisión del score</div></div>
+    </div>
+  </div>
+
+  <!-- FEATURES -->
+  <section id="features">
+    <div class="section" style="text-align:center">
+      <div class="sec-tag">Features</div>
+      <div class="sec-title">Todo lo que necesitás para ganar</div>
+      <div class="sec-sub">Desde detectar nichos hasta vigilar a tus competidores — todo en un solo lugar.</div>
+      <div class="feat-grid">
+        <div class="feat-card"><div class="feat-icon">◆</div><div class="feat-title">Opportunity Score</div><div class="feat-desc">Algoritmo que cruza demanda, oferta, margen y tendencia para detectar nichos rentables al instante.</div></div>
+        <div class="feat-card"><div class="feat-icon">⊕</div><div class="feat-title">Keywords Intelligence</div><div class="feat-desc">Rastreá miles de keywords con volumen de búsquedas, saturación, crecimiento y velocidad de venta.</div></div>
+        <div class="feat-card"><div class="feat-icon">▦</div><div class="feat-title">Análisis de Categorías</div><div class="feat-desc">Compará categorías por margen, comisión MeLi, estacionalidad y elasticidad de precio.</div></div>
+        <div class="feat-card"><div class="feat-icon">◎</div><div class="feat-title">Competitive Intel</div><div class="feat-desc">Mapeá a tus competidores: market share, reputación, antigüedad, envío Full y nivel de amenaza.</div></div>
+        <div class="feat-card"><div class="feat-icon">⏱</div><div class="feat-title">Alertas en Tiempo Real</div><div class="feat-desc">Recibí notificaciones cuando un nicho explota, un competidor baja precios o cambia la demanda.</div></div>
+        <div class="feat-card"><div class="feat-icon">↗</div><div class="feat-title">Exportar Reportes</div><div class="feat-desc">Descargá reportes en PDF con todas las métricas, gráficos y recomendaciones para tu equipo.</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PRICING -->
+  <section id="pricing" style="background:var(--bg2);border-top:1px solid var(--bord)">
+    <div class="section" style="text-align:center">
+      <div class="sec-tag">Pricing</div>
+      <div class="sec-title">Planes para cada etapa</div>
+      <div class="sec-sub">Empezá gratis, escalá cuando quieras. Sin permanencia.</div>
+      <div class="price-grid">
+        <div class="price-card">
+          <div class="plan-name">Starter</div><div class="plan-desc">Para explorar</div>
+          <div class="plan-price">$0<span class="plan-period"> gratis</span></div>
+          <button class="btn" style="width:100%;margin:16px 0;padding:10px;border-radius:9px;font-size:14px" onclick="openModal('signup')">Empezar Gratis</button>
+          <div class="plan-features"><div class="plan-feat">3 búsquedas/día</div><div class="plan-feat">Dashboard básico</div><div class="plan-feat">1 país</div><div class="plan-feat">Keywords top 10</div></div>
+        </div>
+        <div class="price-card pop">
+          <div class="pop-badge">POPULAR</div>
+          <div class="plan-name">Pro</div><div class="plan-desc">Para sellers serios</div>
+          <div class="plan-price">$29<span class="plan-period">/mes</span></div>
+          <button class="btn btn-primary" style="width:100%;margin:16px 0;padding:10px;border-radius:9px;font-size:14px" onclick="openModal('signup')">Probar 14 días gratis</button>
+          <div class="plan-features"><div class="plan-feat">Búsquedas ilimitadas</div><div class="plan-feat">Todas las métricas</div><div class="plan-feat">5 países</div><div class="plan-feat">Alertas email</div><div class="plan-feat">Exportar PDF</div></div>
+        </div>
+        <div class="price-card">
+          <div class="plan-name">Business</div><div class="plan-desc">Para equipos</div>
+          <div class="plan-price">$79<span class="plan-period">/mes</span></div>
+          <button class="btn" style="width:100%;margin:16px 0;padding:10px;border-radius:9px;font-size:14px" onclick="openModal('signup')">Contactar Ventas</button>
+          <div class="plan-features"><div class="plan-feat">Todo de Pro</div><div class="plan-feat">API access</div><div class="plan-feat">5 usuarios</div><div class="plan-feat">Datos históricos 2 años</div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TESTIMONIALS -->
+  <section id="testimonios">
+    <div class="section" style="text-align:center">
+      <div class="sec-tag">Testimonios</div>
+      <div class="sec-title">Lo que dicen nuestros usuarios</div>
+      <div class="testi-grid">
+        <div class="testi-card"><div class="testi-quote">"</div><p class="testi-text">Encontré un nicho de mates cerámicos con 94 de opportunity score. En 3 meses facturé más que en todo el año anterior.</p><div style="display:flex;align-items:center;gap:12px"><div class="testi-av">ML</div><div><div class="testi-name">Martín L.</div><div class="testi-role">Seller Platinum, Buenos Aires</div></div></div></div>
+        <div class="testi-card"><div class="testi-quote">"</div><p class="testi-text">La calculadora de margen me salvó de entrar en una categoría donde la comisión me dejaba sin ganancia. Herramienta esencial.</p><div style="display:flex;align-items:center;gap:12px"><div class="testi-av">CR</div><div><div class="testi-name">Carolina R.</div><div class="testi-role">Emprendedora, CDMX</div></div></div></div>
+        <div class="testi-card"><div class="testi-quote">"</div><p class="testi-text">El heatmap de estacionalidad me permitió planificar inventario con 3 meses de anticipación. Cero stockouts desde entonces.</p><div style="display:flex;align-items:center;gap:12px"><div class="testi-av">FS</div><div><div class="testi-name">Felipe S.</div><div class="testi-role">E-commerce Manager, Santiago</div></div></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <div class="cta-section">
+    <div class="section">
+      <h2 style="font-size:clamp(26px,4vw,44px);font-weight:800;letter-spacing:-1px;margin-bottom:14px">¿Listo para encontrar tu<br><span style="color:var(--acc)">nicho perfecto</span>?</h2>
+      <p style="color:var(--tx2);max-width:440px;margin:0 auto 28px;line-height:1.6">Sumate a miles de sellers que ya usan MeliTrends para tomar decisiones basadas en datos.</p>
+      <button class="btn-hero btn-hero-primary" onclick="openModal('signup')">Crear Cuenta Gratis →</button>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="footer-inner">
+      <div>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+          <div style="width:28px;height:28px;border-radius:7px;background:linear-gradient(135deg,var(--acc),var(--sec));display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:#060B14">M</div>
+          <span style="font-size:14px;font-weight:700">Meli<span style="color:var(--acc)">Trends</span></span>
+        </div>
+        <p style="font-size:12px;color:var(--tx3)">Product Intelligence para MercadoLibre</p>
+      </div>
+      <div class="footer-links">
+        <a href="#">Features</a><a href="#">Pricing</a><a href="#">Blog</a><a href="#">Soporte</a>
+      </div>
+      <div style="font-size:11px;color:var(--tx3);font-family:'IBM Plex Mono',monospace">© 2026 MeliTrends.</div>
+    </div>
+  </footer>
+</div>
+
+<!-- ══════════════════ MODALS ══════════════════ -->
+<div class="overlay" id="overlay" onclick="closeModal()">
+  <!-- LOGIN -->
+  <div class="modal" id="modal-login" style="display:none" onclick="event.stopPropagation()">
+    <div class="modal-close" onclick="closeModal()">✕</div>
+    <div class="modal-logo">M</div>
+    <h3>Bienvenido de vuelta</h3>
+    <div class="modal-sub">Ingresá a tu cuenta de MeliTrends</div>
+    <div class="field"><label>Email</label><input type="email" placeholder="tu@email.com"></div>
+    <div class="field"><label>Contraseña</label><input type="password" placeholder="••••••••"></div>
+    <button class="btn btn-primary" style="width:100%;padding:11px;border-radius:10px;font-size:15px;margin-top:4px" onclick="goToDashboard()">Iniciar Sesión →</button>
+    <div class="modal-alt">¿No tenés cuenta? <span onclick="openModal('signup')">Registrate</span></div>
+  </div>
+  <!-- SIGNUP -->
+  <div class="modal" id="modal-signup" style="display:none" onclick="event.stopPropagation()">
+    <div class="modal-close" onclick="closeModal()">✕</div>
+    <div class="modal-logo">M</div>
+    <h3>Creá tu cuenta</h3>
+    <div class="modal-sub">Empezá a descubrir oportunidades gratis</div>
+    <div class="field"><label>Nombre</label><input type="text" placeholder="Tu nombre"></div>
+    <div class="field"><label>Email</label><input type="email" placeholder="tu@email.com"></div>
+    <div class="field"><label>Contraseña</label><input type="password" placeholder="Mínimo 8 caracteres"></div>
+    <button class="btn btn-primary" style="width:100%;padding:11px;border-radius:10px;font-size:15px;margin-top:4px" onclick="openModal('onboard')">Crear Cuenta →</button>
+    <div class="modal-alt">¿Ya tenés cuenta? <span onclick="openModal('login')">Iniciá sesión</span></div>
+  </div>
+  <!-- ONBOARDING -->
+  <div class="modal ob-modal" id="modal-onboard" style="display:none" onclick="event.stopPropagation()">
+    <div class="ob-prog" id="ob-prog"></div>
+    <div id="ob-body"></div>
+    <div class="ob-btns" id="ob-btns"></div>
+  </div>
+</div>
+
+<!-- ══════════════════ DASHBOARD ══════════════════ -->
+<div id="dashboard">
+  <div class="dash-wrap" style="position:relative">
+    <!-- SIDEBAR -->
+    <nav class="sidebar" id="sidebar">
+      <div class="sb-head" onclick="toggleSidebar()">
+        <div class="sb-icon-logo">M</div>
+        <div class="sb-name">MeliTrends</div>
+      </div>
+      <div class="sb-nav">
+        <div class="sb-lbl">Principal</div>
+        <div class="sb-item act" onclick="setScreen('overview',this)" data-t="Overview"><div class="sb-ico">◈</div><div class="sb-lbl2">Overview</div></div>
+        <div class="sb-item" onclick="setScreen('keywords',this)" data-t="Keywords"><div class="sb-ico">⊕</div><div class="sb-lbl2">Keywords</div></div>
+        <div class="sb-item" onclick="setScreen('categorias',this)" data-t="Categorías"><div class="sb-ico">▦</div><div class="sb-lbl2">Categorías</div></div>
+        <div class="sb-item" onclick="setScreen('competidores',this)" data-t="Competidores"><div class="sb-ico">◎</div><div class="sb-lbl2">Competidores</div></div>
+        <div class="sb-lbl">Herramientas</div>
+        <div class="sb-item" onclick="setScreen('comparador',this)" data-t="Comparador"><div class="sb-ico">⇄</div><div class="sb-lbl2">Comparador</div></div>
+        <div class="sb-item" onclick="setScreen('alertas',this)" data-t="Alertas"><div class="sb-ico">⏱</div><div class="sb-lbl2">Alertas</div><div class="sb-badge">3</div></div>
+      </div>
+      <div class="sb-footer">
+        <div class="sb-user"><div class="sb-av">PK</div><div class="sb-uinfo"><div class="sb-uname">Pak</div><div class="sb-uplan">Plan Pro ✦</div></div></div>
+        <div class="logout" onclick="goToLanding()">← Cerrar sesión</div>
+      </div>
+    </nav>
+    <!-- MAIN -->
+    <div class="dash-main">
+      <div class="topbar">
+        <div class="page-ttl" id="pgTitle">Overview</div>
+        <div class="searchbox"><span style="color:var(--tx3)">⌕</span><input placeholder="Buscar keyword..."></div>
+        <div class="ico-btn" onclick="toggleTheme()" id="dThemeBtn">☾</div>
+        <button class="exp-btn" id="expBtn" onclick="openPDF()">↓ Exportar PDF</button>
+      </div>
+      <div class="dcontent">
+
+        <!-- OVERVIEW -->
+        <div class="screen act" id="sc-overview">
+          <div style="display:flex;align-items:center;margin-bottom:14px"><span class="live-dot"></span><span style="font-size:11px;color:var(--tx2);font-family:'IBM Plex Mono',monospace">Actualizado hace 2 min</span></div>
+          <div class="g4">
+            <div class="dcard"><div class="m-lbl">Opportunity Score</div><div class="m-val" style="color:var(--acc)">87<span style="font-size:14px;color:var(--tx2)">/100</span></div><div class="m-delta" style="color:var(--pos)">▲ +5.2 esta semana</div></div>
+            <div class="dcard"><div class="m-lbl">Keywords</div><div class="m-val">1,284</div><div class="m-delta" style="color:var(--pos)">▲ +38 hoy</div></div>
+            <div class="dcard"><div class="m-lbl">Nichos Detectados</div><div class="m-val">47</div><div class="m-delta" style="color:var(--pos)">▲ 12 explotando</div></div>
+            <div class="dcard"><div class="m-lbl">Alertas Activas</div><div class="m-val" style="color:var(--yel)">3</div><div class="m-delta" style="color:var(--neg)">● 1 urgente</div></div>
+          </div>
+          <div class="g2">
+            <div class="dcard"><div class="ct">Tendencia de Búsquedas</div><div class="ch-wrap" style="height:180px"><canvas id="trendCh"></canvas></div></div>
+            <div class="dcard"><div class="ct">Por País</div><div class="ch-wrap" style="height:180px"><canvas id="paisCh"></canvas></div></div>
+          </div>
+          <div class="g2">
+            <div class="dcard">
+              <div class="ct">🔥 Keywords en Explosión <a onclick="setScreen('keywords',document.querySelector('[data-t=Keywords]'))">Ver todas →</a></div>
+              <table class="dtable"><thead><tr><th>Keyword</th><th>Vol.</th><th>Score</th><th>Trend</th></tr></thead><tbody>
+                <tr><td><b>mate cerámico</b></td><td style="font-family:'IBM Plex Mono',monospace">48K</td><td><div class="sbar"><div class="sfill" style="width:94%"></div></div><span style="font-size:10px;color:var(--acc)">94</span></td><td><span class="badge bg">▲ +62%</span></td></tr>
+                <tr><td><b>botella filtrante</b></td><td style="font-family:'IBM Plex Mono',monospace">9.8K</td><td><div class="sbar"><div class="sfill" style="width:91%"></div></div><span style="font-size:10px;color:var(--acc)">91</span></td><td><span class="badge bg">▲ +88%</span></td></tr>
+                <tr><td><b>termo acero inox</b></td><td style="font-family:'IBM Plex Mono',monospace">31K</td><td><div class="sbar"><div class="sfill" style="width:88%"></div></div><span style="font-size:10px;color:var(--acc)">88</span></td><td><span class="badge bg">▲ +41%</span></td></tr>
+                <tr><td><b>cargador inalámbrico</b></td><td style="font-family:'IBM Plex Mono',monospace">19K</td><td><div class="sbar"><div class="sfill" style="width:76%"></div></div><span style="font-size:10px;color:var(--acc)">76</span></td><td><span class="badge by">→ estable</span></td></tr>
+                <tr><td><b>auricular gamer</b></td><td style="font-family:'IBM Plex Mono',monospace">15K</td><td><div class="sbar"><div class="sfill" style="width:62%"></div></div><span style="font-size:10px;color:var(--acc)">62</span></td><td><span class="badge br">▼ -12%</span></td></tr>
+              </tbody></table>
+            </div>
+            <div class="dcard">
+              <div class="ct">Alertas Recientes</div>
+              <div class="al" style="background:rgba(239,100,97,.08);border-color:rgba(239,100,97,.2)"><div class="al-dot" style="background:var(--neg)"></div><div><div class="al-title">Caída de precio detectada</div><div class="al-desc">Competidor bajó 18% en "auricular gamer"</div><div class="al-time">hace 15 min</div></div></div>
+              <div class="al" style="background:rgba(52,211,153,.08);border-color:rgba(52,211,153,.2)"><div class="al-dot" style="background:var(--pos)"></div><div><div class="al-title">Nicho explosivo: mate cerámico</div><div class="al-desc">Opportunity Score subió a 94</div><div class="al-time">hace 1h</div></div></div>
+              <div class="al" style="background:rgba(255,209,102,.08);border-color:rgba(255,209,102,.2)"><div class="al-dot" style="background:var(--yel)"></div><div><div class="al-title">Stock bajo en top sellers</div><div class="al-desc">3 de 5 sellers sin stock — termo acero inox</div><div class="al-time">hace 3h</div></div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- KEYWORDS -->
+        <div class="screen" id="sc-keywords">
+          <div class="dcard">
+            <div class="ct">1,284 keywords · Argentina</div>
+            <div style="overflow-x:auto">
+            <table class="dtable" style="min-width:580px"><thead><tr><th>Keyword</th><th>Volumen</th><th>Sellers</th><th>Score</th><th>Tendencia</th><th>Saturación</th><th>Categoría</th></tr></thead><tbody>
+              <tr><td><b>mate cerámico</b></td><td>48,200</td><td>124</td><td><span style="color:var(--acc);font-weight:700">94</span><div class="sbar"><div class="sfill" style="width:94%"></div></div></td><td><span class="badge bg">▲ +62%</span></td><td><span class="badge bg">Baja</span></td><td><span class="badge bb">Hogar</span></td></tr>
+              <tr><td><b>botella filtrante</b></td><td>9,800</td><td>67</td><td><span style="color:var(--acc);font-weight:700">91</span><div class="sbar"><div class="sfill" style="width:91%"></div></div></td><td><span class="badge bg">▲ +88%</span></td><td><span class="badge bg">Muy Baja</span></td><td><span class="badge bb">Hogar</span></td></tr>
+              <tr><td><b>termo acero inox</b></td><td>31,800</td><td>287</td><td><span style="color:var(--acc);font-weight:700">88</span><div class="sbar"><div class="sfill" style="width:88%"></div></div></td><td><span class="badge bg">▲ +41%</span></td><td><span class="badge by">Media</span></td><td><span class="badge bb">Hogar</span></td></tr>
+              <tr><td><b>cargador inalámbrico</b></td><td>19,100</td><td>512</td><td><span style="color:var(--acc);font-weight:700">76</span><div class="sbar"><div class="sfill" style="width:76%"></div></div></td><td><span class="badge by">→ estable</span></td><td><span class="badge br">Alta</span></td><td><span class="badge bp">Electrónica</span></td></tr>
+              <tr><td><b>colchoneta yoga</b></td><td>12,700</td><td>203</td><td><span style="color:var(--acc);font-weight:700">79</span><div class="sbar"><div class="sfill" style="width:79%"></div></div></td><td><span class="badge bg">▲ +19%</span></td><td><span class="badge by">Media</span></td><td><span class="badge" style="background:rgba(255,140,66,.15);color:var(--ora)">Deportes</span></td></tr>
+              <tr><td><b>auricular gamer</b></td><td>15,300</td><td>891</td><td><span style="color:var(--acc);font-weight:700">62</span><div class="sbar"><div class="sfill" style="width:62%"></div></div></td><td><span class="badge br">▼ -12%</span></td><td><span class="badge br">Muy Alta</span></td><td><span class="badge bp">Electrónica</span></td></tr>
+            </tbody></table>
+            </div>
+          </div>
+        </div>
+
+        <!-- CATEGORIAS -->
+        <div class="screen" id="sc-categorias">
+          <div class="g3">
+            <div class="dcard"><div class="m-lbl">Mejor Categoría</div><div class="m-val" style="font-size:16px;color:var(--acc);margin-top:6px">Hogar y Deco</div><div style="font-size:12px;color:var(--tx2);margin-top:4px">Score promedio: 86</div></div>
+            <div class="dcard"><div class="m-lbl">Mayor Crecimiento</div><div class="m-val" style="font-size:16px;color:var(--pos);margin-top:6px">Salud y Bienestar</div><div style="font-size:12px;color:var(--tx2);margin-top:4px">+71% volumen</div></div>
+            <div class="dcard"><div class="m-lbl">Más Saturada</div><div class="m-val" style="font-size:16px;color:var(--neg);margin-top:6px">Electrónica</div><div style="font-size:12px;color:var(--tx2);margin-top:4px">4,200+ sellers</div></div>
+          </div>
+          <div class="g2">
+            <div class="dcard"><div class="ct">Opportunity Score por Categoría</div><div class="ch-wrap" style="height:220px"><canvas id="catCh"></canvas></div></div>
+            <div class="dcard">
+              <div class="ct">Top Oportunidades</div>
+              <div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--bord)"><div style="width:30px;height:30px;border-radius:7px;background:var(--acc2);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0">🌱</div><div style="flex:1"><div style="font-size:12px;font-weight:600">Sustentabilidad</div><div style="font-size:10px;color:var(--tx2)">340 keywords · comisión 7%</div></div><div style="font-size:18px;font-weight:700;color:var(--acc)">91</div></div>
+              <div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--bord)"><div style="width:30px;height:30px;border-radius:7px;background:var(--acc2);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0">🏠</div><div style="flex:1"><div style="font-size:12px;font-weight:600">Hogar y Deco</div><div style="font-size:10px;color:var(--tx2)">1,240 keywords · comisión 8%</div></div><div style="font-size:18px;font-weight:700;color:var(--acc)">86</div></div>
+              <div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--bord)"><div style="width:30px;height:30px;border-radius:7px;background:var(--acc2);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0">💊</div><div style="flex:1"><div style="font-size:12px;font-weight:600">Salud y Bienestar</div><div style="font-size:10px;color:var(--tx2)">890 keywords · comisión 10%</div></div><div style="font-size:18px;font-weight:700;color:var(--acc)">82</div></div>
+              <div style="display:flex;align-items:center;gap:10px;padding:9px 0"><div style="width:30px;height:30px;border-radius:7px;background:var(--acc2);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0">🏋️</div><div style="flex:1"><div style="font-size:12px;font-weight:600">Deportes</div><div style="font-size:10px;color:var(--tx2)">670 keywords · comisión 9%</div></div><div style="font-size:18px;font-weight:700;color:var(--acc)">79</div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- COMPETIDORES -->
+        <div class="screen" id="sc-competidores">
+          <div class="g11">
+            <div class="dcard"><div class="ct">Market Share — "mate cerámico"</div><div class="ch-wrap" style="height:200px"><canvas id="shareCh"></canvas></div></div>
+            <div class="dcard">
+              <div class="ct">Análisis de Competidores</div>
+              <div class="cbar-row"><div class="cbar-lbl"><span>MateroAR <span class="badge bg">Platinum</span></span><span style="color:var(--acc)">34%</span></div><div class="cbar-track"><div class="cbar-fill" style="width:34%;background:var(--acc)"></div></div></div>
+              <div class="cbar-row"><div class="cbar-lbl"><span>CerámicaShop</span><span style="color:var(--acc)">22%</span></div><div class="cbar-track"><div class="cbar-fill" style="width:22%;background:var(--sec)"></div></div></div>
+              <div class="cbar-row"><div class="cbar-lbl"><span>ArtesaníasBA</span><span style="color:var(--acc)">18%</span></div><div class="cbar-track"><div class="cbar-fill" style="width:18%;background:var(--pur)"></div></div></div>
+              <div class="cbar-row"><div class="cbar-lbl"><span>NaturalMate</span><span style="color:var(--acc)">11%</span></div><div class="cbar-track"><div class="cbar-fill" style="width:11%;background:var(--yel)"></div></div></div>
+              <div class="cbar-row"><div class="cbar-lbl"><span>Resto</span><span style="color:var(--tx2)">15%</span></div><div class="cbar-track"><div class="cbar-fill" style="width:15%;background:var(--bord2)"></div></div></div>
+              <div style="margin-top:14px;padding:12px;background:var(--acc2);border-radius:8px;border:1px solid rgba(0,229,176,.2)">
+                <div style="font-size:12px;font-weight:600;color:var(--acc);margin-bottom:4px">💡 Oportunidad detectada</div>
+                <div style="font-size:12px;color:var(--tx2)">El 15% restante está fragmentado. Entrá con envío Full y precio competitivo.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- COMPARADOR -->
+        <div class="screen" id="sc-comparador">
+          <div class="dcard" style="margin-bottom:14px">
+            <div class="ct">Comparador de Keywords</div>
+            <p style="font-size:13px;color:var(--tx2);margin-bottom:14px">Agregá hasta 4 keywords para comparar métricas lado a lado</p>
+            <div class="kw-inputs" id="kwInputs">
+              <div class="kw-row"><input type="text" value="mate cerámico" id="kw0" placeholder="Keyword 1"></div>
+              <div class="kw-row"><input type="text" value="termo acero inox" id="kw1" placeholder="Keyword 2"></div>
+            </div>
+            <div style="display:flex;gap:8px">
+              <button class="btn btn-sm" onclick="addKw()">+ Agregar</button>
+              <button class="btn btn-primary btn-sm" onclick="runComp()">Comparar →</button>
+            </div>
+          </div>
+          <div class="dcard" id="compRes" style="display:none">
+            <div class="ct" id="compTtl">Comparativa</div>
+            <div style="position:relative;height:260px"><canvas id="compCh"></canvas></div>
+          </div>
+        </div>
+
+        <!-- ALERTAS -->
+        <div class="screen" id="sc-alertas">
+          <div class="g11">
+            <div>
+              <div style="font-size:10px;font-weight:600;color:var(--tx3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px">Alertas Activas (3)</div>
+              <div class="al dcard" style="background:rgba(239,100,97,.08);border-color:rgba(239,100,97,.25);margin-bottom:10px">
+                <div class="al-dot" style="background:var(--neg);margin-top:5px"></div>
+                <div style="flex:1"><div class="al-title">🚨 Caída de precio detectada</div><div class="al-desc">Competidor bajó 18% en "auricular gamer". Tu precio ya no es competitivo.</div><div class="al-time">hace 15 min · Electrónica</div></div>
+                <button class="btn btn-sm" style="background:var(--neg);color:#fff;border:none;flex-shrink:0;align-self:center">Ver</button>
+              </div>
+              <div class="al dcard" style="background:rgba(52,211,153,.08);border-color:rgba(52,211,153,.25);margin-bottom:10px">
+                <div class="al-dot" style="background:var(--pos);margin-top:5px"></div>
+                <div style="flex:1"><div class="al-title">🚀 Nicho explosivo detectado</div><div class="al-desc">Opportunity Score de "mate cerámico" subió a 94. Alta demanda, baja oferta.</div><div class="al-time">hace 1h · Hogar y Deco</div></div>
+                <button class="btn btn-sm" style="background:var(--pos);color:#060B14;border:none;flex-shrink:0;align-self:center">Ver</button>
+              </div>
+              <div class="al dcard" style="background:rgba(255,209,102,.08);border-color:rgba(255,209,102,.25)">
+                <div class="al-dot" style="background:var(--yel);margin-top:5px"></div>
+                <div style="flex:1"><div class="al-title">📦 Stock bajo en top sellers</div><div class="al-desc">3 de 5 top sellers de "termo acero inox" sin stock. Oportunidad.</div><div class="al-time">hace 3h · Hogar y Deco</div></div>
+                <button class="btn btn-sm" style="background:var(--yel);color:#060B14;border:none;flex-shrink:0;align-self:center">Ver</button>
+              </div>
+            </div>
+            <div class="dcard">
+              <div class="ct">Nueva Alerta</div>
+              <div class="ff">
+                <label>Tipo</label>
+                <select><option>Cambio de precio</option><option>Opportunity Score ></option><option>Stock bajo</option><option>Keyword explosiva</option></select>
+                <label>Keyword / Categoría</label>
+                <input type="text" placeholder="ej: mate cerámico">
+                <label>Notificar por</label>
+              </div>
+              <div style="display:flex;gap:8px;margin-bottom:14px">
+                <button class="btn" style="flex:1;padding:8px;border-radius:8px;background:var(--acc2);border-color:rgba(0,229,176,.4);color:var(--acc);font-size:12px">Email</button>
+                <button class="btn" style="flex:1;padding:8px;border-radius:8px;font-size:12px">WhatsApp</button>
+              </div>
+              <button class="btn btn-primary" style="width:100%;padding:10px;border-radius:9px;font-size:14px">Crear alerta →</button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- PDF MODAL -->
+    <div class="pdf-ov" id="pdfOv">
+      <div class="pdf-box">
+        <div style="font-size:36px;margin-bottom:12px">📊</div>
+        <div style="font-size:17px;font-weight:700;margin-bottom:6px">Exportar Reporte PDF</div>
+        <div style="font-size:13px;color:var(--tx2);margin-bottom:4px">Seleccioná las secciones a incluir</div>
+        <div class="pdf-checks">
+          <label class="pdf-check"><input type="checkbox" checked style="accent-color:var(--acc)"> Métricas Overview</label>
+          <label class="pdf-check"><input type="checkbox" checked style="accent-color:var(--acc)"> Keywords Top 20</label>
+          <label class="pdf-check"><input type="checkbox" checked style="accent-color:var(--acc)"> Análisis de Categorías</label>
+          <label class="pdf-check"><input type="checkbox" style="accent-color:var(--acc)"> Competidores</label>
+        </div>
+        <div class="pdf-btns">
+          <button class="btn" style="flex:1;padding:10px;border-radius:9px;font-size:14px" onclick="closePDF()">Cancelar</button>
+          <button class="btn btn-primary" style="flex:1;padding:10px;border-radius:9px;font-size:14px" onclick="downloadPDF()">Descargar →</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const FONT='Sora,sans-serif';
+let isLight=false;
+let kwCount=2;
+let curScreen='overview';
+const kwDb={'mate cerámico':[94,48,124,62,78],'termo acero inox':[88,31,287,41,65],'botella filtrante':[91,9,67,88,72],'colchoneta yoga':[79,12,203,19,60]};
+const obSteps=[
+  {icon:'🚀',title:'¡Bienvenido a MeliTrends!',desc:'Vamos a configurar tu experiencia en 3 simples pasos.',opts:null},
+  {icon:'🌎',title:'¿En qué país vendés?',desc:'Seleccioná tu marketplace principal para personalizar los datos.',opts:['🇦🇷 Argentina','🇲🇽 México','🇧🇷 Brasil','🇨🇴 Colombia','🇨🇱 Chile']},
+  {icon:'📦',title:'¿Qué categorías te interesan?',desc:'Elegí hasta 3 para empezar a rastrear oportunidades.',opts:['Electrónica','Indumentaria','Hogar','Deportes','Celulares','Belleza']},
+  {icon:'✅',title:'¡Todo listo!',desc:'Tu dashboard personalizado está preparado. Empezá a descubrir oportunidades.',opts:null}
+];
+let obStep=0,obSel=[];
+
+// ─ NAV SCROLL ─
+window.addEventListener('scroll',()=>document.getElementById('nav').classList.toggle('scrolled',window.scrollY>20));
+
+// ─ THEME ─
+function toggleTheme(){
+  isLight=!isLight;
+  document.body.classList.toggle('light',isLight);
+  document.getElementById('tdot').textContent=isLight?'☀️':'🌙';
+  document.getElementById('tdot').style.left=isLight?'22px':'2px';
+  document.getElementById('dThemeBtn').textContent=isLight?'☀':'☾';
+  renderCharts();
+}
+
+// ─ MODALS ─
+function openModal(id){
+  const ov=document.getElementById('overlay');
+  ov.classList.add('open');
+  ['login','signup','onboard'].forEach(m=>document.getElementById('modal-'+m).style.display='none');
+  document.getElementById('modal-'+id).style.display='block';
+  if(id==='onboard'){obStep=0;obSel=[];renderOB();}
+}
+function closeModal(){document.getElementById('overlay').classList.remove('open');}
+
+// ─ ONBOARDING ─
+function renderOB(){
+  const s=obSteps[obStep];
+  document.getElementById('ob-prog').innerHTML=obSteps.map((_,i)=>`<div class="ob-bar" style="width:${i<=obStep?28:8}px;background:${i<=obStep?'var(--acc)':'var(--surf)'}"></div>`).join('');
+  let html=`<div class="ob-icon">${s.icon}</div><div class="ob-title">${s.title}</div><div class="ob-desc">${s.desc}</div>`;
+  if(s.opts){
+    html+=`<div class="ob-opts">${s.opts.map((o,i)=>`<button class="ob-opt${obSel.includes(i)?' sel':''}" onclick="obToggle(${i})">${o}</button>`).join('')}</div>`;
+  }
+  document.getElementById('ob-body').innerHTML=html;
+  document.getElementById('ob-btns').innerHTML=(obStep>0?`<button class="btn" onclick="obPrev()">← Atrás</button>`:'')+`<button class="btn btn-primary" onclick="obNext()">${obStep===obSteps.length-1?'Ir al Dashboard →':'Siguiente →'}</button>`;
+}
+function obToggle(i){obSel.includes(i)?obSel=obSel.filter(x=>x!==i):obSel.push(i);renderOB();}
+function obPrev(){obStep--;obSel=[];renderOB();}
+function obNext(){if(obStep<obSteps.length-1){obStep++;obSel=[];renderOB();}else goToDashboard();}
+
+// ─ ROUTING ─
+function goToDashboard(){
+  closeModal();
+  document.getElementById('landing').style.display='none';
+  document.getElementById('dashboard').classList.add('open');
+  setTimeout(renderCharts,80);
+}
+function goToLanding(){
+  document.getElementById('dashboard').classList.remove('open');
+  document.getElementById('landing').style.display='block';
+}
+
+// ─ SIDEBAR ─
+function toggleSidebar(){document.getElementById('sidebar').classList.toggle('col');}
+
+// ─ SCREENS ─
+function setScreen(name,el){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('act'));
+  document.getElementById('sc-'+name).classList.add('act');
+  document.querySelectorAll('.sb-item').forEach(n=>n.classList.remove('act'));
+  if(el)el.classList.add('act');
+  document.getElementById('pgTitle').textContent=el?el.dataset.t:name;
+  curScreen=name;
+  setTimeout(renderCharts,60);
+}
+
+// ─ PDF ─
+function openPDF(){document.getElementById('pdfOv').classList.add('open');}
+function closePDF(){document.getElementById('pdfOv').classList.remove('open');}
+function downloadPDF(){
+  closePDF();
+  const b=document.getElementById('expBtn');
+  b.innerHTML='✓ Descargado';b.style.background='var(--pos)';
+  setTimeout(()=>{b.innerHTML='↓ Exportar PDF';b.style.background='';},2400);
+}
+
+// ─ CHARTS ─
+const CC={};
+function gc(){
+  const l=isLight;
+  return{acc:l?'#059669':'#00E5B0',sec:l?'#2563EB':'#4DA8DA',pur:l?'#7C3AED':'#B07CFF',yel:l?'#D97706':'#FFD166',red:l?'#DC2626':'#EF6461',grid:l?'rgba(203,213,225,.5)':'rgba(30,45,66,.8)',tx:l?'#475569':'#94A3B8'};
+}
+function dc(id){const c=Chart.getChart(document.getElementById(id));if(c)c.destroy();}
+function renderCharts(){
+  const c=gc();
+  if(curScreen==='overview'){
+    dc('trendCh');dc('paisCh');
+    const tc=document.getElementById('trendCh');
+    if(tc)new Chart(tc,{type:'line',data:{labels:['Oct','Nov','Dic','Ene','Feb','Mar','Abr'],datasets:[{label:'mate cerámico',data:[24,28,31,38,42,46,48],borderColor:c.acc,backgroundColor:c.acc+'18',fill:true,tension:.4,borderWidth:2,pointRadius:0},{label:'termo acero',data:[18,20,22,25,28,30,31],borderColor:c.sec,backgroundColor:c.sec+'12',fill:true,tension:.4,borderWidth:2,pointRadius:0}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{color:c.grid},ticks:{color:c.tx,font:{family:FONT,size:10}}},y:{grid:{color:c.grid},ticks:{color:c.tx,font:{size:10},callback:v=>v+'K'}}}}});
+    const pc=document.getElementById('paisCh');
+    if(pc)new Chart(pc,{type:'doughnut',data:{labels:['Argentina','México','Brasil','Colombia','Chile'],datasets:[{data:[42,24,18,10,6],backgroundColor:[c.acc,c.sec,c.pur,c.yel,c.red],borderWidth:0,hoverOffset:4}]},options:{responsive:true,maintainAspectRatio:false,cutout:'65%',plugins:{legend:{display:false}}}});
+  }
+  if(curScreen==='categorias'){
+    dc('catCh');
+    const el=document.getElementById('catCh');
+    if(el)new Chart(el,{type:'bar',data:{labels:['Hogar','Sustentabilidad','Salud','Deportes','Mascotas','Electrónica'],datasets:[{data:[86,91,82,79,74,58],backgroundColor:[c.acc,c.acc,c.sec,c.sec,c.yel,c.red],borderRadius:5,borderWidth:0}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{min:0,max:100,grid:{color:c.grid},ticks:{color:c.tx,font:{size:10}}},y:{grid:{display:false},ticks:{color:c.tx,font:{size:11}}}}}});
+  }
+  if(curScreen==='competidores'){
+    dc('shareCh');
+    const el=document.getElementById('shareCh');
+    if(el)new Chart(el,{type:'doughnut',data:{labels:['MateroAR','CerámicaShop','ArtesaníasBA','NaturalMate','Resto'],datasets:[{data:[34,22,18,11,15],backgroundColor:[c.acc,c.sec,c.pur,c.yel,'#2A3F5F'],borderWidth:0,hoverOffset:4}]},options:{responsive:true,maintainAspectRatio:false,cutout:'58%',plugins:{legend:{position:'right',labels:{color:c.tx,font:{family:FONT,size:11},padding:10,boxWidth:9}}}}});
+  }
+}
+
+// ─ KEYWORD COMPARADOR ─
+function addKw(){
+  if(kwCount>=4)return;
+  const d=document.createElement('div');d.className='kw-row';
+  d.innerHTML=`<input type="text" id="kw${kwCount}" placeholder="Keyword ${kwCount+1}" style="flex:1;background:var(--surf);border:1px solid var(--bord);border-radius:8px;padding:8px 12px;color:var(--tx);font-family:'Sora',sans-serif;font-size:13px;outline:none">`;
+  document.getElementById('kwInputs').appendChild(d);kwCount++;
+}
+function runComp(){
+  const c=gc();
+  const kws=[];
+  for(let i=0;i<kwCount;i++){const el=document.getElementById('kw'+i);if(el&&el.value.trim())kws.push(el.value.trim());}
+  if(kws.length<2)return;
+  const cols=[c.acc,c.sec,c.pur,c.yel];
+  dc('compCh');
+  document.getElementById('compRes').style.display='block';
+  document.getElementById('compTtl').textContent='Comparativa: '+kws.join(' vs ');
+  const el=document.getElementById('compCh');
+  if(!el)return;
+  new Chart(el,{type:'radar',data:{labels:['Opportunity','Volumen','Comp. Baja','Tendencia','Margen'],datasets:kws.map((k,i)=>{const d=kwDb[k.toLowerCase()]||[Math.round(50+Math.random()*40),Math.round(10+Math.random()*40),Math.round(100+Math.random()*200),Math.round(Math.random()*60),Math.round(40+Math.random()*50)];return{label:k,data:[d[0],Math.min(d[1]*2,100),100-Math.round(d[2]/10),d[3]+50,d[4]],borderColor:cols[i],backgroundColor:cols[i]+'28',borderWidth:2,pointRadius:3};})},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:c.tx,font:{family:FONT,size:12}}}},scales:{r:{grid:{color:c.grid},ticks:{color:c.tx,backdropColor:'transparent',font:{size:9}},pointLabels:{color:c.tx,font:{family:FONT,size:12}}}}}});
+}
+
+// ─ HERO BARS ─
+(function(){
+  const bars=document.getElementById('heroBars');
+  if(!bars)return;
+  const vals=[40,55,45,70,60,85,75,90,80,95,88,100];
+  bars.innerHTML=vals.map((h,i)=>`<div style="flex:1;height:${h}%;border-radius:2px 2px 0 0;background:${i===vals.length-1?'var(--acc)':'rgba(0,229,176,.35)'}"></div>`).join('');
+})();
+</script>
+</body>
+</html>
