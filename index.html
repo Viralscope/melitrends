@@ -878,26 +878,52 @@ async function runSearch(){
   document.getElementById('searchResults').style.display='none';
 
   try{
-    const res=await fetch(`/api/search?q=${encodeURIComponent(q)}&site=${site}&limit=20`);
+    const res=await fetch(`https://api.mercadolibre.com/sites/${site}/search?q=${encodeURIComponent(q)}&limit=20`);
     const data=await res.json();
-    if(data.error)throw new Error(data.error);
+    if(!res.ok)throw new Error(data.message||'Error en búsqueda');
+
+    const results=data.results||[];
+    const paging=data.paging||{};
+    const prices=results.map(r=>r.price).filter(Boolean);
+    const avgPrice=prices.length?Math.round(prices.reduce((a,b)=>a+b,0)/prices.length):0;
+    const minPrice=prices.length?Math.min(...prices):0;
+    const maxPrice=prices.length?Math.max(...prices):0;
+    const sellers=new Set(results.map(r=>r.seller?.id)).size;
+    const opportunityScore=Math.min(100,Math.round(
+      (paging.total>1000?40:paging.total/25)+
+      (sellers<50?30:sellers<200?20:10)+
+      (results.length>0?results.filter(r=>r.shipping?.free_shipping).length/results.length*30:0)
+    ));
+    const data2={
+      keyword:q,site,
+      total_results:paging.total||0,
+      sellers_count:sellers,
+      avg_price:avgPrice,min_price:minPrice,max_price:maxPrice,
+      opportunity_score:opportunityScore,
+      results:results.map(item=>({
+        id:item.id,title:item.title,price:item.price,
+        currency:item.currency_id,condition:item.condition,
+        thumbnail:item.thumbnail,permalink:item.permalink,
+        free_shipping:item.shipping?.free_shipping||false,
+      }))
+    };
 
     document.getElementById('searchLoading').style.display='none';
     document.getElementById('searchResults').style.display='block';
-    document.getElementById('searchTitle').textContent=`${data.total_results?.toLocaleString()||0} resultados para "${q}" en ${siteNames[site]}`;
+    document.getElementById('searchTitle').textContent=`${data2.total_results?.toLocaleString()||0} resultados para "${q}" en ${siteNames[site]}`;
 
     const sym=symbols[site]||'$';
-    const score=data.opportunity_score||0;
+    const score=data2.opportunity_score||0;
     const scoreColor=score>=80?'var(--pos)':score>=60?'var(--yel)':'var(--neg)';
 
     document.getElementById('searchMetrics').innerHTML=`
       <div class="dcard"><div class="m-lbl">Opportunity Score</div><div class="m-val" style="color:${scoreColor}">${score}<span style="font-size:14px;color:var(--tx2)">/100</span></div><div style="font-size:11px;color:var(--tx2);margin-top:2px">${score>=80?'Alta oportunidad':score>=60?'Oportunidad media':'Saturado'}</div></div>
-      <div class="dcard"><div class="m-lbl">Total Publicaciones</div><div class="m-val">${(data.total_results||0).toLocaleString()}</div><div style="font-size:11px;color:var(--tx2);margin-top:2px">resultados activos</div></div>
-      <div class="dcard"><div class="m-lbl">Precio Promedio</div><div class="m-val" style="font-size:20px">${sym}${(data.avg_price||0).toLocaleString()}</div><div style="font-size:11px;color:var(--tx2);margin-top:2px">rango: ${sym}${(data.min_price||0).toLocaleString()} – ${sym}${(data.max_price||0).toLocaleString()}</div></div>
-      <div class="dcard"><div class="m-lbl">Sellers Únicos</div><div class="m-val">${data.sellers_count||0}</div><div style="font-size:11px;color:var(--tx2);margin-top:2px">${(data.sellers_count||0)<50?'Poca competencia':(data.sellers_count||0)<200?'Competencia media':'Alta competencia'}</div></div>
+      <div class="dcard"><div class="m-lbl">Total Publicaciones</div><div class="m-val">${(data2.total_results||0).toLocaleString()}</div><div style="font-size:11px;color:var(--tx2);margin-top:2px">resultados activos</div></div>
+      <div class="dcard"><div class="m-lbl">Precio Promedio</div><div class="m-val" style="font-size:20px">${sym}${(data2.avg_price||0).toLocaleString()}</div><div style="font-size:11px;color:var(--tx2);margin-top:2px">rango: ${sym}${(data2.min_price||0).toLocaleString()} – ${sym}${(data2.max_price||0).toLocaleString()}</div></div>
+      <div class="dcard"><div class="m-lbl">Sellers Únicos</div><div class="m-val">${data2.sellers_count||0}</div><div style="font-size:11px;color:var(--tx2);margin-top:2px">${(data2.sellers_count||0)<50?'Poca competencia':(data2.sellers_count||0)<200?'Competencia media':'Alta competencia'}</div></div>
     `;
 
-    const rows=(data.results||[]).map(item=>`
+    const rows=(data2.results||[]).map(item=>`
       <tr>
         <td style="max-width:220px">
           <div style="display:flex;align-items:center;gap:8px">
