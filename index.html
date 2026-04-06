@@ -878,7 +878,8 @@ async function runSearch(){
   document.getElementById('searchResults').style.display='none';
 
   try{
-    const res=await fetch(`https://api.mercadolibre.com/sites/${site}/search?q=${encodeURIComponent(q)}&limit=20`);
+    const meliUrl=`https://api.mercadolibre.com/sites/${site}/search?q=${encodeURIComponent(q)}&limit=20`;
+    const res=await fetch(`https://corsproxy.io/?${encodeURIComponent(meliUrl)}`);
     const data=await res.json();
     if(!res.ok)throw new Error(data.message||'Error en búsqueda');
 
