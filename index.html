@@ -473,6 +473,9 @@ html,body{height:100%;background:var(--bg);color:var(--tx);font-family:'Sora',sa
         <div class="sb-item" onclick="setScreen('competidores',this)" data-t="Competidores"><div class="sb-ico">◎</div><div class="sb-lbl2">Competidores</div></div>
         <div class="sb-lbl">Herramientas</div>
         <div class="sb-item" onclick="setScreen('comparador',this)" data-t="Buscador Real"><div class="sb-ico">⌕</div><div class="sb-lbl2">Buscador</div></div>
+        <div class="sb-item" onclick="setScreen('margen',this)" data-t="Calculadora de Margen"><div class="sb-ico">$</div><div class="sb-lbl2">Margen</div></div>
+        <div class="sb-item" onclick="setScreen('compartrends',this)" data-t="Comparador de Trends"><div class="sb-ico">⇄</div><div class="sb-lbl2">Comparar Países</div></div>
+        <div class="sb-item" onclick="setScreen('historial',this)" data-t="Historial de Trends"><div class="sb-ico">◷</div><div class="sb-lbl2">Historial</div></div>
         <div class="sb-item" onclick="setScreen('alertas',this)" data-t="Alertas"><div class="sb-ico">⏱</div><div class="sb-lbl2">Alertas</div><div class="sb-badge">3</div></div>
       </div>
       <div class="sb-footer">
@@ -796,6 +799,7 @@ function setScreen(name,el){
   setTimeout(renderCharts,60);
   if(name==='keywords') loadTrends();
   if(name==='categorias') loadCategories();
+  if(name==='historial') loadHistorial();
 }
 
 // ─ LOAD TRENDS REALES ─
@@ -941,6 +945,204 @@ async function runSearch(){
       <a href="${meliSearchUrl}" target="_blank" style="display:inline-flex;align-items:center;gap:8px;padding:12px 28px;border-radius:10px;background:var(--acc);color:#060B14;font-weight:700;font-size:15px;text-decoration:none;font-family:'Sora',sans-serif">Ver resultados en MeLi ↗</a>
     </td></tr>
   `;
+}
+
+// ─ CALCULADORA DE MARGEN ─
+function calcMargen(){
+  const costo=parseFloat(document.getElementById('mg-costo').value)||0;
+  const venta=parseFloat(document.getElementById('mg-venta').value)||0;
+  const catComision=parseFloat(document.getElementById('mg-cat').value)||11;
+  const tipoExtra=parseFloat(document.getElementById('mg-tipo').value)||0;
+  const envio=parseFloat(document.getElementById('mg-envio').value)||0;
+  const otros=parseFloat(document.getElementById('mg-otros').value)||0;
+  if(!costo||!venta){return;}
+  const comisionPorc=catComision/100+tipoExtra;
+  const comisionMeLi=venta*comisionPorc;
+  const ivaComision=comisionMeLi*0.21;
+  const totalComision=comisionMeLi+ivaComision;
+  const totalCostos=costo+totalComision+envio+otros;
+  const margenNeto=venta-totalCostos;
+  const margenPorc=(margenNeto/venta*100);
+  const roi=(margenNeto/costo*100);
+  const c=gc();
+  const color=margenPorc>=30?'var(--pos)':margenPorc>=15?'var(--yel)':'var(--neg)';
+  const emoji=margenPorc>=30?'🟢':margenPorc>=15?'🟡':'🔴';
+
+  document.getElementById('mg-result').innerHTML=`
+    <div class="ct">Resultado del Análisis</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
+      <div style="background:var(--surf);border-radius:8px;padding:14px;text-align:center">
+        <div style="font-size:11px;color:var(--tx3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">Margen Neto</div>
+        <div style="font-size:28px;font-weight:700;color:${color}">${margenPorc.toFixed(1)}%</div>
+        <div style="font-size:12px;color:var(--tx2);margin-top:4px">$${Math.round(margenNeto).toLocaleString()} ARS</div>
+      </div>
+      <div style="background:var(--surf);border-radius:8px;padding:14px;text-align:center">
+        <div style="font-size:11px;color:var(--tx3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">ROI</div>
+        <div style="font-size:28px;font-weight:700;color:${roi>=50?'var(--pos)':roi>=25?'var(--yel)':'var(--neg)'}">${roi.toFixed(0)}%</div>
+        <div style="font-size:12px;color:var(--tx2);margin-top:4px">retorno sobre inversión</div>
+      </div>
+    </div>
+    <div style="font-size:12px;border-top:1px solid var(--bord);padding-top:12px">
+      <div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--bord)"><span style="color:var(--tx2)">Precio de venta</span><span style="font-family:'IBM Plex Mono',monospace">$${venta.toLocaleString()}</span></div>
+      <div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--bord)"><span style="color:var(--tx2)">Costo del producto</span><span style="font-family:'IBM Plex Mono',monospace;color:var(--neg)">-$${costo.toLocaleString()}</span></div>
+      <div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--bord)"><span style="color:var(--tx2)">Comisión MeLi (${(comisionPorc*100).toFixed(1)}% + IVA)</span><span style="font-family:'IBM Plex Mono',monospace;color:var(--neg)">-$${Math.round(totalComision).toLocaleString()}</span></div>
+      ${envio?`<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--bord)"><span style="color:var(--tx2)">Costo de envío</span><span style="font-family:'IBM Plex Mono',monospace;color:var(--neg)">-$${envio.toLocaleString()}</span></div>`:''}
+      ${otros?`<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--bord)"><span style="color:var(--tx2)">Otros costos</span><span style="font-family:'IBM Plex Mono',monospace;color:var(--neg)">-$${otros.toLocaleString()}</span></div>`:''}
+      <div style="display:flex;justify-content:space-between;padding:7px 0;font-weight:700"><span>Margen Neto</span><span style="font-family:'IBM Plex Mono',monospace;color:${color}">$${Math.round(margenNeto).toLocaleString()}</span></div>
+    </div>
+  `;
+
+  const recEl=document.getElementById('mg-recomendacion');
+  recEl.style.display='block';
+  let rec='';
+  if(margenPorc>=30) rec=`${emoji} <b>Excelente margen.</b> Este producto es viable para vender en MeLi. Con un margen del ${margenPorc.toFixed(1)}% tenés colchón suficiente para publicidad y descuentos promocionales.`;
+  else if(margenPorc>=15) rec=`${emoji} <b>Margen aceptable.</b> El producto es viable pero ajustado. Considerá negociar mejor precio de costo o aumentar el precio de venta un ${Math.ceil((30-margenPorc)/100*venta/100)*100} ARS más para llegar a margen óptimo.`;
+  else if(margenPorc>0) rec=`${emoji} <b>Margen muy bajo.</b> Con ${margenPorc.toFixed(1)}% de margen cualquier devolución o descuento te deja en rojo. Necesitás bajar el costo o subir el precio de venta a al menos $${Math.ceil(totalCostos/0.7/1000)*1000}.toLocaleString()}.`;
+  else rec=`${emoji} <b>Operación en pérdida.</b> Con estos números perdés $${Math.abs(Math.round(margenNeto)).toLocaleString()} por venta. No publiques hasta ajustar los números.`;
+  document.getElementById('mg-rec-text').innerHTML=rec;
+}
+
+// ─ COMPARADOR DE TRENDS POR PAÍS ─
+async function loadComparTrends(){
+  document.getElementById('comparLoading').style.display='block';
+  document.getElementById('comparGrid').style.display='none';
+  document.getElementById('comparCross').style.display='none';
+
+  const paises=[
+    {code:'MLA',flag:'🇦🇷',name:'Argentina'},
+    {code:'MLM',flag:'🇲🇽',name:'México'},
+    {code:'MLB',flag:'🇧🇷',name:'Brasil'},
+    {code:'MCO',flag:'🇨🇴',name:'Colombia'},
+    {code:'MLC',flag:'🇨🇱',name:'Chile'},
+  ];
+
+  try{
+    const results=await Promise.all(paises.map(p=>
+      fetch(`/api/trends?site=${p.code}`).then(r=>r.json()).then(d=>({...p,trends:d.trends||[]}))
+    ));
+
+    document.getElementById('comparLoading').style.display='none';
+    const grid=document.getElementById('comparGrid');
+    grid.style.cssText='display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px';
+
+    grid.innerHTML=results.map(p=>`
+      <div class="dcard">
+        <div style="font-size:14px;font-weight:700;margin-bottom:12px">${p.flag} ${p.name}</div>
+        ${p.trends.slice(0,10).map((t,i)=>`
+          <div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--bord);cursor:pointer"
+            onclick="window.open('${t.url}','_blank')"
+            onmouseover="this.style.paddingLeft='4px'" onmouseout="this.style.paddingLeft='0'">
+            <span style="font-size:10px;color:var(--tx3);font-family:'IBM Plex Mono',monospace;min-width:18px">#${i+1}</span>
+            <span style="font-size:12px;font-weight:500;flex:1">${t.keyword}</span>
+            <span style="font-size:10px;color:var(--acc)">↗</span>
+          </div>
+        `).join('')}
+      </div>
+    `).join('');
+
+    // Detectar keywords que aparecen en múltiples países
+    const keywordMap={};
+    results.forEach(p=>{
+      p.trends.forEach((t,i)=>{
+        const kw=t.keyword.toLowerCase();
+        if(!keywordMap[kw])keywordMap[kw]={keyword:t.keyword,paises:[],ranks:{}};
+        keywordMap[kw].paises.push(p.flag+p.name);
+        keywordMap[kw].ranks[p.name]=i+1;
+      });
+    });
+    const multi=Object.values(keywordMap).filter(k=>k.paises.length>=2).sort((a,b)=>b.paises.length-a.paises.length);
+
+    if(multi.length>0){
+      const cross=document.getElementById('comparCross');
+      cross.style.display='block';
+      cross.innerHTML=`
+        <div class="dcard">
+          <div class="ct">🌎 Keywords trending en múltiples países <span style="font-size:11px;color:var(--tx2)">(oportunidad global)</span></div>
+          <table class="dtable">
+            <thead><tr><th>Keyword</th><th>Países</th><th>Ranks</th><th>Señal</th></tr></thead>
+            <tbody>${multi.slice(0,10).map(k=>`
+              <tr>
+                <td><b>${k.keyword}</b></td>
+                <td style="font-size:12px">${k.paises.join(', ')}</td>
+                <td style="font-size:11px;font-family:'IBM Plex Mono',monospace;color:var(--tx2)">${Object.entries(k.ranks).map(([p,r])=>`${p}:#${r}`).join(' ')}</td>
+                <td><span class="badge ${k.paises.length>=4?'bg':k.paises.length>=3?'by':'bb'}">${k.paises.length>=4?'🔥 Muy fuerte':k.paises.length>=3?'⚡ Fuerte':'📈 Creciendo'}</span></td>
+              </tr>
+            `).join('')}</tbody>
+          </table>
+        </div>`;
+    }
+
+    grid.style.display='grid';
+  }catch(err){
+    document.getElementById('comparLoading').innerHTML=`<div style="color:var(--neg);font-size:13px">Error: ${err.message}</div>`;
+  }
+}
+
+// ─ HISTORIAL DE TRENDS (localStorage) ─
+async function saveTodayTrends(){
+  const btn=event.target;
+  btn.textContent='⏳ Guardando...';
+  try{
+    const res=await fetch('/api/trends?site=MLA');
+    const data=await res.json();
+    const today=new Date().toISOString().split('T')[0];
+    const historial=JSON.parse(localStorage.getItem('mt_historial')||'{}');
+    historial[today]=data.trends||[];
+    localStorage.setItem('mt_historial',JSON.stringify(historial));
+    btn.textContent='✓ Guardado!';btn.style.background='var(--pos)';
+    setTimeout(()=>{btn.textContent='💾 Guardar Trends de Hoy';btn.style.background='';},2000);
+    loadHistorial();
+  }catch(err){
+    btn.textContent='Error al guardar';
+  }
+}
+
+function loadHistorial(){
+  const historial=JSON.parse(localStorage.getItem('mt_historial')||'{}');
+  const fechas=Object.keys(historial).sort().reverse();
+  const cont=document.getElementById('historialContent');
+  if(fechas.length===0){
+    cont.innerHTML=`<div style="text-align:center;padding:40px;color:var(--tx2)">
+      <div style="font-size:40px;margin-bottom:12px">📈</div>
+      <div style="font-size:15px;font-weight:600;margin-bottom:8px">Sin historial todavía</div>
+      <div style="font-size:13px;max-width:400px;margin:0 auto 20px">Hacé click en "Guardar Trends de Hoy" para empezar a registrar.</div>
+      <button onclick="saveTodayTrends()" class="btn btn-primary" style="padding:10px 24px;border-radius:9px;font-size:14px">💾 Guardar Trends de Hoy →</button>
+    </div>`;
+    return;
+  }
+
+  // Detectar keywords que subieron o bajaron
+  const movimientos={};
+  if(fechas.length>=2){
+    const hoy=historial[fechas[0]];
+    const ayer=historial[fechas[1]];
+    hoy.forEach(t=>{
+      const ant=ayer.find(a=>a.keyword===t.keyword);
+      if(ant)movimientos[t.keyword]=ant.rank-t.rank;
+      else movimientos[t.keyword]='new';
+    });
+  }
+
+  cont.innerHTML=`
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px">
+      ${fechas.map((fecha,fi)=>`
+        <div class="dcard">
+          <div style="font-size:13px;font-weight:700;margin-bottom:10px;display:flex;justify-content:space-between">
+            <span>📅 ${fecha}</span>
+            <span style="font-size:11px;color:var(--tx2)">${fi===0?'Hoy':fi===1?'Ayer':`hace ${fi} días`}</span>
+          </div>
+          ${historial[fecha].slice(0,10).map((t,i)=>{
+            const mov=fi===0?movimientos[t.keyword]:null;
+            const movStr=mov==='new'?'<span style="font-size:10px;color:var(--acc)">NEW</span>':mov>0?`<span style="font-size:10px;color:var(--pos)">▲${mov}</span>`:mov<0?`<span style="font-size:10px;color:var(--neg)">▼${Math.abs(mov)}</span>`:'';
+            return `<div style="display:flex;align-items:center;gap:6px;padding:5px 0;border-bottom:1px solid var(--bord)">
+              <span style="font-size:10px;color:var(--tx3);min-width:18px">#${t.rank}</span>
+              <span style="font-size:12px;flex:1">${t.keyword}</span>
+              ${movStr}
+            </div>`;
+          }).join('')}
+        </div>
+      `).join('')}
+    </div>`;
 }
 
 // ─ HERO BARS ─
