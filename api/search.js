@@ -3,12 +3,19 @@ module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Methods', 'GET');
 
   const { q, site = 'MLA', limit = 20 } = req.query;
-
-  if (!q) return res.status(400).json({ error: 'Falta el parametro q (keyword)' });
+  if (!q) return res.status(400).json({ error: 'Falta el parametro q' });
 
   try {
     const url = `https://api.mercadolibre.com/sites/${site}/search?q=${encodeURIComponent(q)}&limit=${limit}`;
-    const response = await fetch(url);
+    const response = await fetch(url, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Accept': 'application/json',
+        'Accept-Language': 'es-AR,es;q=0.9',
+        'Referer': 'https://www.mercadolibre.com.ar/',
+        'Origin': 'https://www.mercadolibre.com.ar',
+      }
+    });
     const data = await response.json();
 
     if (!response.ok) return res.status(500).json({ error: 'Search error', detail: data });
@@ -31,7 +38,6 @@ module.exports = async function handler(req, res) {
     const minPrice = prices.length ? Math.min(...prices) : 0;
     const maxPrice = prices.length ? Math.max(...prices) : 0;
     const sellers = new Set(results.map(r => r.seller_id)).size;
-
     const opportunityScore = Math.min(100, Math.round(
       (paging.total > 1000 ? 40 : paging.total / 25) +
       (sellers < 50 ? 30 : sellers < 200 ? 20 : 10) +
