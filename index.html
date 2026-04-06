@@ -473,7 +473,7 @@ html,body{height:100%;background:var(--bg);color:var(--tx);font-family:'Sora',sa
         <div class="sb-item" onclick="setScreen('categorias',this)" data-t="Categorías"><div class="sb-ico">▦</div><div class="sb-lbl2">Categorías</div></div>
         <div class="sb-item" onclick="setScreen('competidores',this)" data-t="Competidores"><div class="sb-ico">◎</div><div class="sb-lbl2">Competidores</div></div>
         <div class="sb-lbl">Herramientas</div>
-        <div class="sb-item" onclick="setScreen('comparador',this)" data-t="Comparador"><div class="sb-ico">⇄</div><div class="sb-lbl2">Comparador</div></div>
+        <div class="sb-item" onclick="setScreen('comparador',this)" data-t="Buscador Real"><div class="sb-ico">⌕</div><div class="sb-lbl2">Buscador</div></div>
         <div class="sb-item" onclick="setScreen('alertas',this)" data-t="Alertas"><div class="sb-ico">⏱</div><div class="sb-lbl2">Alertas</div><div class="sb-badge">3</div></div>
       </div>
       <div class="sb-footer">
@@ -598,23 +598,53 @@ html,body{height:100%;background:var(--bg);color:var(--tx);font-family:'Sora',sa
           </div>
         </div>
 
-        <!-- COMPARADOR -->
+        <!-- COMPARADOR / BUSCADOR -->
         <div class="screen" id="sc-comparador">
+          <!-- BUSCADOR REAL -->
           <div class="dcard" style="margin-bottom:14px">
-            <div class="ct">Comparador de Keywords</div>
-            <p style="font-size:13px;color:var(--tx2);margin-bottom:14px">Agregá hasta 4 keywords para comparar métricas lado a lado</p>
-            <div class="kw-inputs" id="kwInputs">
-              <div class="kw-row"><input type="text" value="mate cerámico" id="kw0" placeholder="Keyword 1"></div>
-              <div class="kw-row"><input type="text" value="termo acero inox" id="kw1" placeholder="Keyword 2"></div>
+            <div class="ct">Búsqueda Real en MercadoLibre</div>
+            <p style="font-size:13px;color:var(--tx2);margin-bottom:14px">Buscá cualquier producto y obtené datos reales: precios, sellers y Opportunity Score</p>
+            <div style="display:flex;gap:8px;margin-bottom:8px">
+              <input type="text" id="searchInput" placeholder="ej: zapatillas hombre, freidora de aire..." onkeydown="if(event.key==='Enter')runSearch()"
+                style="flex:1;background:var(--surf);border:1px solid var(--bord);border-radius:8px;padding:10px 14px;color:var(--tx);font-family:'Sora',sans-serif;font-size:14px;outline:none;transition:border-color .2s">
+              <select id="searchSite" style="background:var(--surf);border:1px solid var(--bord);color:var(--tx);padding:10px 12px;border-radius:8px;font-family:'Sora',sans-serif;font-size:13px;outline:none">
+                <option value="MLA">🇦🇷 Argentina</option>
+                <option value="MLM">🇲🇽 México</option>
+                <option value="MLB">🇧🇷 Brasil</option>
+                <option value="MCO">🇨🇴 Colombia</option>
+                <option value="MLC">🇨🇱 Chile</option>
+              </select>
+              <button class="btn btn-primary" onclick="runSearch()" style="padding:10px 20px;border-radius:8px;font-size:14px;white-space:nowrap">Buscar →</button>
             </div>
-            <div style="display:flex;gap:8px">
-              <button class="btn btn-sm" onclick="addKw()">+ Agregar</button>
-              <button class="btn btn-primary btn-sm" onclick="runComp()">Comparar →</button>
+            <div style="display:flex;gap:6px;flex-wrap:wrap">
+              <span style="font-size:11px;color:var(--tx3)">Sugerencias:</span>
+              <span onclick="quickSearch('zapatillas hombre')" style="font-size:11px;color:var(--acc);cursor:pointer;padding:2px 8px;border-radius:4px;background:var(--acc2)">zapatillas hombre</span>
+              <span onclick="quickSearch('freidora de aire')" style="font-size:11px;color:var(--acc);cursor:pointer;padding:2px 8px;border-radius:4px;background:var(--acc2)">freidora de aire</span>
+              <span onclick="quickSearch('iphone')" style="font-size:11px;color:var(--acc);cursor:pointer;padding:2px 8px;border-radius:4px;background:var(--acc2)">iphone</span>
+              <span onclick="quickSearch('silla gamer')" style="font-size:11px;color:var(--acc);cursor:pointer;padding:2px 8px;border-radius:4px;background:var(--acc2)">silla gamer</span>
+              <span onclick="quickSearch('mate cerámico')" style="font-size:11px;color:var(--acc);cursor:pointer;padding:2px 8px;border-radius:4px;background:var(--acc2)">mate cerámico</span>
             </div>
           </div>
-          <div class="dcard" id="compRes" style="display:none">
-            <div class="ct" id="compTtl">Comparativa</div>
-            <div style="position:relative;height:260px"><canvas id="compCh"></canvas></div>
+
+          <!-- RESULTADOS -->
+          <div id="searchLoading" style="display:none;text-align:center;padding:40px;color:var(--tx2)">
+            <div style="font-size:28px;margin-bottom:10px;animation:spin 1s linear infinite;display:inline-block">↻</div>
+            <div style="font-size:13px">Buscando en MercadoLibre...</div>
+          </div>
+
+          <div id="searchResults" style="display:none">
+            <!-- MÉTRICAS RESUMEN -->
+            <div class="g4" style="margin-bottom:14px" id="searchMetrics"></div>
+            <!-- TABLA DE PRODUCTOS -->
+            <div class="dcard">
+              <div class="ct" id="searchTitle">Resultados</div>
+              <div style="overflow-x:auto">
+                <table class="dtable" style="min-width:500px">
+                  <thead><tr><th>Producto</th><th>Precio</th><th>Condición</th><th>Envío</th><th>Ver</th></tr></thead>
+                  <tbody id="searchBody"></tbody>
+                </table>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -831,25 +861,61 @@ function renderCharts(){
   }
 }
 
-// ─ KEYWORD COMPARADOR ─
-function addKw(){
-  if(kwCount>=4)return;
-  const d=document.createElement('div');d.className='kw-row';
-  d.innerHTML=`<input type="text" id="kw${kwCount}" placeholder="Keyword ${kwCount+1}" style="flex:1;background:var(--surf);border:1px solid var(--bord);border-radius:8px;padding:8px 12px;color:var(--tx);font-family:'Sora',sans-serif;font-size:13px;outline:none">`;
-  document.getElementById('kwInputs').appendChild(d);kwCount++;
+// ─ BUSCADOR REAL ─
+function quickSearch(kw){
+  document.getElementById('searchInput').value=kw;
+  runSearch();
 }
-function runComp(){
-  const c=gc();
-  const kws=[];
-  for(let i=0;i<kwCount;i++){const el=document.getElementById('kw'+i);if(el&&el.value.trim())kws.push(el.value.trim());}
-  if(kws.length<2)return;
-  const cols=[c.acc,c.sec,c.pur,c.yel];
-  dc('compCh');
-  document.getElementById('compRes').style.display='block';
-  document.getElementById('compTtl').textContent='Comparativa: '+kws.join(' vs ');
-  const el=document.getElementById('compCh');
-  if(!el)return;
-  new Chart(el,{type:'radar',data:{labels:['Opportunity','Volumen','Comp. Baja','Tendencia','Margen'],datasets:kws.map((k,i)=>{const d=kwDb[k.toLowerCase()]||[Math.round(50+Math.random()*40),Math.round(10+Math.random()*40),Math.round(100+Math.random()*200),Math.round(Math.random()*60),Math.round(40+Math.random()*50)];return{label:k,data:[d[0],Math.min(d[1]*2,100),100-Math.round(d[2]/10),d[3]+50,d[4]],borderColor:cols[i],backgroundColor:cols[i]+'28',borderWidth:2,pointRadius:3};})},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:c.tx,font:{family:FONT,size:12}}}},scales:{r:{grid:{color:c.grid},ticks:{color:c.tx,backdropColor:'transparent',font:{size:9}},pointLabels:{color:c.tx,font:{family:FONT,size:12}}}}}});
+
+async function runSearch(){
+  const q=document.getElementById('searchInput').value.trim();
+  const site=document.getElementById('searchSite').value;
+  if(!q)return;
+  const siteNames={MLA:'Argentina',MLM:'México',MLB:'Brasil',MCO:'Colombia',MLC:'Chile'};
+  const symbols={MLA:'$',MLM:'$',MLB:'R$',MCO:'$',MLC:'$'};
+
+  document.getElementById('searchLoading').style.display='block';
+  document.getElementById('searchResults').style.display='none';
+
+  try{
+    const res=await fetch(`/api/search?q=${encodeURIComponent(q)}&site=${site}&limit=20`);
+    const data=await res.json();
+    if(data.error)throw new Error(data.error);
+
+    document.getElementById('searchLoading').style.display='none';
+    document.getElementById('searchResults').style.display='block';
+    document.getElementById('searchTitle').textContent=`${data.total_results?.toLocaleString()||0} resultados para "${q}" en ${siteNames[site]}`;
+
+    const sym=symbols[site]||'$';
+    const score=data.opportunity_score||0;
+    const scoreColor=score>=80?'var(--pos)':score>=60?'var(--yel)':'var(--neg)';
+
+    document.getElementById('searchMetrics').innerHTML=`
+      <div class="dcard"><div class="m-lbl">Opportunity Score</div><div class="m-val" style="color:${scoreColor}">${score}<span style="font-size:14px;color:var(--tx2)">/100</span></div><div style="font-size:11px;color:var(--tx2);margin-top:2px">${score>=80?'Alta oportunidad':score>=60?'Oportunidad media':'Saturado'}</div></div>
+      <div class="dcard"><div class="m-lbl">Total Publicaciones</div><div class="m-val">${(data.total_results||0).toLocaleString()}</div><div style="font-size:11px;color:var(--tx2);margin-top:2px">resultados activos</div></div>
+      <div class="dcard"><div class="m-lbl">Precio Promedio</div><div class="m-val" style="font-size:20px">${sym}${(data.avg_price||0).toLocaleString()}</div><div style="font-size:11px;color:var(--tx2);margin-top:2px">rango: ${sym}${(data.min_price||0).toLocaleString()} – ${sym}${(data.max_price||0).toLocaleString()}</div></div>
+      <div class="dcard"><div class="m-lbl">Sellers Únicos</div><div class="m-val">${data.sellers_count||0}</div><div style="font-size:11px;color:var(--tx2);margin-top:2px">${(data.sellers_count||0)<50?'Poca competencia':(data.sellers_count||0)<200?'Competencia media':'Alta competencia'}</div></div>
+    `;
+
+    const rows=(data.results||[]).map(item=>`
+      <tr>
+        <td style="max-width:220px">
+          <div style="display:flex;align-items:center;gap:8px">
+            ${item.thumbnail?`<img src="${item.thumbnail}" style="width:36px;height:36px;border-radius:6px;object-fit:cover;flex-shrink:0" onerror="this.style.display='none'">`:''}
+            <div style="font-size:12px;font-weight:600;line-height:1.4">${item.title}</div>
+          </div>
+        </td>
+        <td style="font-family:'IBM Plex Mono',monospace;font-weight:700;color:var(--acc);white-space:nowrap">${sym}${(item.price||0).toLocaleString()}</td>
+        <td><span class="badge ${item.condition==='new'?'bg':'by'}">${item.condition==='new'?'Nuevo':'Usado'}</span></td>
+        <td>${item.free_shipping?'<span class="badge bg">✓ Gratis</span>':'<span style="font-size:11px;color:var(--tx3)">—</span>'}</td>
+        <td><a href="${item.permalink}" target="_blank" style="color:var(--acc);font-size:12px;text-decoration:none;font-weight:600">Ver →</a></td>
+      </tr>
+    `).join('');
+    document.getElementById('searchBody').innerHTML=rows||'<tr><td colspan="5" style="text-align:center;color:var(--tx2);padding:20px">Sin resultados</td></tr>';
+
+  }catch(err){
+    document.getElementById('searchLoading').innerHTML=`<div style="color:var(--neg);font-size:13px">Error: ${err.message}</div>`;
+  }
 }
 
 // ─ HERO BARS ─
