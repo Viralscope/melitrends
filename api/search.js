@@ -1,3 +1,18 @@
+async function getToken() {
+  const response = await fetch('https://api.mercadolibre.com/oauth/token', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({
+      grant_type: 'client_credentials',
+      client_id: process.env.MELI_CLIENT_ID,
+      client_secret: process.env.MELI_CLIENT_SECRET,
+    }),
+  });
+  const data = await response.json();
+  if (!data.access_token) throw new Error('No se pudo obtener token: ' + JSON.stringify(data));
+  return data.access_token;
+}
+
 module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET');
@@ -6,14 +21,14 @@ module.exports = async function handler(req, res) {
   if (!q) return res.status(400).json({ error: 'Falta el parametro q' });
 
   try {
+    const token = await getToken();
     const url = `https://api.mercadolibre.com/sites/${site}/search?q=${encodeURIComponent(q)}&limit=${limit}`;
+
     const response = await fetch(url, {
       headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Authorization': `Bearer ${token}`,
+        'User-Agent': 'Mozilla/5.0',
         'Accept': 'application/json',
-        'Accept-Language': 'es-AR,es;q=0.9',
-        'Referer': 'https://www.mercadolibre.com.ar/',
-        'Origin': 'https://www.mercadolibre.com.ar',
       }
     });
     const data = await response.json();
