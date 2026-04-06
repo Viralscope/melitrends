@@ -26,6 +26,7 @@ html,body{height:100%;background:var(--bg);color:var(--tx);font-family:'Sora',sa
 @keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
 @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+@keyframes spin{to{transform:rotate(360deg)}}
 .fade{animation:fadeUp .6s ease forwards}
 .fade1{animation:fadeUp .6s ease .1s both}
 .fade2{animation:fadeUp .6s ease .2s both}
@@ -525,17 +526,36 @@ html,body{height:100%;background:var(--bg);color:var(--tx);font-family:'Sora',sa
 
         <!-- KEYWORDS -->
         <div class="screen" id="sc-keywords">
+          <div class="dcard" style="margin-bottom:14px">
+            <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
+              <div>
+                <div style="font-size:14px;font-weight:700;margin-bottom:2px">Trends en tiempo real</div>
+                <div style="font-size:12px;color:var(--tx2)" id="kwSubtitle">Cargando datos de MercadoLibre...</div>
+              </div>
+              <div style="display:flex;gap:8px;align-items:center">
+                <select id="siteSelect" onchange="loadTrends()" style="background:var(--surf);border:1px solid var(--bord);color:var(--tx);padding:7px 12px;border-radius:8px;font-family:'Sora',sans-serif;font-size:13px;outline:none">
+                  <option value="MLA">🇦🇷 Argentina</option>
+                  <option value="MLM">🇲🇽 México</option>
+                  <option value="MLB">🇧🇷 Brasil</option>
+                  <option value="MCO">🇨🇴 Colombia</option>
+                  <option value="MLC">🇨🇱 Chile</option>
+                </select>
+                <button onclick="loadTrends()" class="btn btn-sm" style="display:flex;align-items:center;gap:5px">
+                  ↻ Actualizar
+                </button>
+              </div>
+            </div>
+          </div>
           <div class="dcard">
-            <div class="ct">1,284 keywords · Argentina</div>
-            <div style="overflow-x:auto">
-            <table class="dtable" style="min-width:580px"><thead><tr><th>Keyword</th><th>Volumen</th><th>Sellers</th><th>Score</th><th>Tendencia</th><th>Saturación</th><th>Categoría</th></tr></thead><tbody>
-              <tr><td><b>mate cerámico</b></td><td>48,200</td><td>124</td><td><span style="color:var(--acc);font-weight:700">94</span><div class="sbar"><div class="sfill" style="width:94%"></div></div></td><td><span class="badge bg">▲ +62%</span></td><td><span class="badge bg">Baja</span></td><td><span class="badge bb">Hogar</span></td></tr>
-              <tr><td><b>botella filtrante</b></td><td>9,800</td><td>67</td><td><span style="color:var(--acc);font-weight:700">91</span><div class="sbar"><div class="sfill" style="width:91%"></div></div></td><td><span class="badge bg">▲ +88%</span></td><td><span class="badge bg">Muy Baja</span></td><td><span class="badge bb">Hogar</span></td></tr>
-              <tr><td><b>termo acero inox</b></td><td>31,800</td><td>287</td><td><span style="color:var(--acc);font-weight:700">88</span><div class="sbar"><div class="sfill" style="width:88%"></div></div></td><td><span class="badge bg">▲ +41%</span></td><td><span class="badge by">Media</span></td><td><span class="badge bb">Hogar</span></td></tr>
-              <tr><td><b>cargador inalámbrico</b></td><td>19,100</td><td>512</td><td><span style="color:var(--acc);font-weight:700">76</span><div class="sbar"><div class="sfill" style="width:76%"></div></div></td><td><span class="badge by">→ estable</span></td><td><span class="badge br">Alta</span></td><td><span class="badge bp">Electrónica</span></td></tr>
-              <tr><td><b>colchoneta yoga</b></td><td>12,700</td><td>203</td><td><span style="color:var(--acc);font-weight:700">79</span><div class="sbar"><div class="sfill" style="width:79%"></div></div></td><td><span class="badge bg">▲ +19%</span></td><td><span class="badge by">Media</span></td><td><span class="badge" style="background:rgba(255,140,66,.15);color:var(--ora)">Deportes</span></td></tr>
-              <tr><td><b>auricular gamer</b></td><td>15,300</td><td>891</td><td><span style="color:var(--acc);font-weight:700">62</span><div class="sbar"><div class="sfill" style="width:62%"></div></div></td><td><span class="badge br">▼ -12%</span></td><td><span class="badge br">Muy Alta</span></td><td><span class="badge bp">Electrónica</span></td></tr>
-            </tbody></table>
+            <div id="kwLoading" style="text-align:center;padding:40px;color:var(--tx2)">
+              <div style="font-size:24px;margin-bottom:10px;animation:spin 1s linear infinite;display:inline-block">↻</div>
+              <div style="font-size:13px">Conectando con MercadoLibre...</div>
+            </div>
+            <div id="kwTableWrap" style="display:none;overflow-x:auto">
+              <table class="dtable" style="min-width:400px">
+                <thead><tr><th>#</th><th>Keyword Trending</th><th>Score Oportunidad</th><th>Búsqueda</th></tr></thead>
+                <tbody id="kwTableBody"></tbody>
+              </table>
             </div>
           </div>
         </div>
@@ -737,6 +757,40 @@ function setScreen(name,el){
   document.getElementById('pgTitle').textContent=el?el.dataset.t:name;
   curScreen=name;
   setTimeout(renderCharts,60);
+  if(name==='keywords') loadTrends();
+}
+
+// ─ LOAD TRENDS REALES ─
+async function loadTrends(){
+  const site=document.getElementById('siteSelect')?.value||'MLA';
+  const siteNames={MLA:'Argentina',MLM:'México',MLB:'Brasil',MCO:'Colombia',MLC:'Chile'};
+  document.getElementById('kwLoading').style.display='block';
+  document.getElementById('kwTableWrap').style.display='none';
+  document.getElementById('kwSubtitle').textContent='Cargando datos de MercadoLibre...';
+  try{
+    const res=await fetch(`/api/trends?site=${site}`);
+    const data=await res.json();
+    if(data.error) throw new Error(data.error);
+    const trends=data.trends||[];
+    document.getElementById('kwSubtitle').textContent=`Top ${trends.length} keywords trending en ${siteNames[site]||site} · Actualizado ahora`;
+    const scores=[95,91,88,84,80,77,74,70,67,64,61,58,55,53,50,48,46,44,42,40];
+    const tbody=document.getElementById('kwTableBody');
+    tbody.innerHTML=trends.map((t,i)=>`
+      <tr style="cursor:pointer" onclick="window.open('${t.url}','_blank')">
+        <td><span style="font-size:11px;color:var(--tx3);font-family:'IBM Plex Mono',monospace">#${t.rank}</span></td>
+        <td><b>${t.keyword}</b><div style="font-size:10px;color:var(--tx3);margin-top:2px">↗ ver en MercadoLibre</div></td>
+        <td>
+          <span style="color:var(--acc);font-weight:700;font-size:14px">${scores[i]||40}</span>
+          <div class="sbar"><div class="sfill" style="width:${scores[i]||40}%"></div></div>
+        </td>
+        <td><span class="badge bg">🔥 Trending</span></td>
+      </tr>
+    `).join('');
+    document.getElementById('kwLoading').style.display='none';
+    document.getElementById('kwTableWrap').style.display='block';
+  }catch(err){
+    document.getElementById('kwLoading').innerHTML=`<div style="color:var(--neg);font-size:13px">Error al cargar datos: ${err.message}</div>`;
+  }
 }
 
 // ─ PDF ─
