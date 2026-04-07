@@ -23,11 +23,11 @@ export default async function handler(req, res) {
     // Traemos hasta 50 resultados de MercadoLibre
     const searchUrl = `https://api.mercadolibre.com/sites/${site}/search?q=${encodeURIComponent(q)}&limit=50`;
     const searchRes = await fetch(searchUrl, {
-  headers: {
-    'User-Agent': 'Mozilla/5.0 (compatible; MeliTrends/1.0)',
-    'Accept': 'application/json',
-  }
-});
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (compatible; MeliTrends/1.0)',
+        'Accept': 'application/json',
+      }
+    });
 
     if (!searchRes.ok) {
       throw new Error(`MercadoLibre API error: ${searchRes.status}`);
