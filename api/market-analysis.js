@@ -1,44 +1,18 @@
 // api/market-analysis.js — MeliTrends
-// Usa autenticación OAuth igual que trends.js
-
-async function getToken() {
-  const response = await fetch('https://api.mercadolibre.com/oauth/token', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: new URLSearchParams({
-      grant_type: 'client_credentials',
-      client_id: process.env.MELI_CLIENT_ID,
-      client_secret: process.env.MELI_CLIENT_SECRET,
-    }),
-  });
-  const data = await response.json();
-  return data.access_token;
-}
+// Recibe los items ya buscados desde el frontend y procesa el análisis
 
 module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   if (req.method === 'OPTIONS') return res.status(200).end();
-  if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' });
-
-  const { q, site = 'MLA' } = req.query;
-  if (!q || q.trim() === '') return res.status(400).json({ error: 'El parámetro "q" es requerido' });
+  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
   try {
-    const token = await getToken();
-    const searchUrl = `https://api.mercadolibre.com/sites/${site}/search?q=${encodeURIComponent(q)}&limit=50`;
-    const searchRes = await fetch(searchUrl, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-
-    if (!searchRes.ok) throw new Error(`MercadoLibre API error: ${searchRes.status}`);
-
-    const searchData = await searchRes.json();
-    const items = searchData.results || [];
+    const { items = [], query = '', site = 'MLA', total_results = 0 } = req.body;
 
     if (items.length === 0) {
-      return res.status(200).json({ query: q, site, total_results: 0, sellers: [], top_products: [], price_analysis: null });
+      return res.status(200).json({ query, site, total_results: 0, sellers: [], top_products: [], price_analysis: null });
     }
 
     // ── VENDEDORES ──────────────────────────────────────────────────────────
@@ -108,11 +82,8 @@ module.exports = async function handler(req, res) {
     const outliers = prices.filter((p) => p < q1 - 1.5 * iqr || p > q3 + 1.5 * iqr);
 
     return res.status(200).json({
-      query: q, site,
-      total_results: searchData.paging?.total || items.length,
-      sample_size: items.length,
-      sellers: topSellers,
-      top_products: topProducts,
+      query, site, total_results, sample_size: items.length,
+      sellers: topSellers, top_products: topProducts,
       price_analysis: {
         min: priceMin, max: priceMax, avg: priceAvg, median: priceMedian,
         currency_id: items[0]?.currency_id || 'ARS',
@@ -120,6 +91,6 @@ module.exports = async function handler(req, res) {
       },
     });
   } catch (error) {
-    return res.status(500).json({ error: 'Error al obtener datos de MercadoLibre', detail: error.message });
+    return res.status(500).json({ error: 'Error procesando datos', detail: error.message });
   }
 };
