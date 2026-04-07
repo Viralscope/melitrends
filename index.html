@@ -477,6 +477,8 @@ html,body{height:100%;background:var(--bg);color:var(--tx);font-family:'Sora',sa
         <div class="sb-item" onclick="setScreen('compartrends',this)" data-t="Comparador de Trends"><div class="sb-ico">⇄</div><div class="sb-lbl2">Comparar Países</div></div>
         <div class="sb-item" onclick="setScreen('historial',this)" data-t="Historial de Trends"><div class="sb-ico">◷</div><div class="sb-lbl2">Historial</div></div>
         <div class="sb-item" onclick="setScreen('alertas',this)" data-t="Alertas"><div class="sb-ico">⏱</div><div class="sb-lbl2">Alertas</div><div class="sb-badge">3</div></div>
+        <div class="sb-lbl">Análisis</div>
+        <div class="sb-item" onclick="setScreen('mercado',this)" data-t="Análisis de Mercado"><div class="sb-ico">🔬</div><div class="sb-lbl2">Análisis de Mercado</div></div>
       </div>
       <div class="sb-footer">
         <div class="sb-user"><div class="sb-av">PK</div><div class="sb-uinfo"><div class="sb-uname">Pak</div><div class="sb-uplan">Plan Pro ✦</div></div></div>
@@ -791,6 +793,89 @@ html,body{height:100%;background:var(--bg);color:var(--tx);font-family:'Sora',sa
           </div>
         </div>
 
+        <!-- ANÁLISIS DE MERCADO -->
+        <div class="screen" id="sc-mercado">
+          <!-- Buscador -->
+          <div class="dcard" style="margin-bottom:14px">
+            <div style="font-size:14px;font-weight:700;margin-bottom:4px">🔬 Análisis de Mercado</div>
+            <div style="font-size:12px;color:var(--tx2);margin-bottom:16px">Buscá un producto y analizá quién domina el mercado, los más vendidos y la distribución de precios.</div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+              <input id="mkt-input" type="text" placeholder="ej: auriculares bluetooth, mate cerámico..."
+                style="flex:1;min-width:220px;background:var(--surf);border:1px solid var(--bord);border-radius:8px;padding:10px 14px;color:var(--tx);font-family:'Sora',sans-serif;font-size:14px;outline:none;transition:border-color .2s"
+                onfocus="this.style.borderColor='var(--acc)'" onblur="this.style.borderColor='var(--bord)'"
+                onkeydown="if(event.key==='Enter')loadMarket()">
+              <select id="mkt-site" style="background:var(--surf);border:1px solid var(--bord);color:var(--tx);padding:10px 14px;border-radius:8px;font-family:'Sora',sans-serif;font-size:13px;outline:none">
+                <option value="MLA">🇦🇷 Argentina</option>
+                <option value="MLM">🇲🇽 México</option>
+                <option value="MLB">🇧🇷 Brasil</option>
+                <option value="MCO">🇨🇴 Colombia</option>
+                <option value="MLC">🇨🇱 Chile</option>
+              </select>
+              <button onclick="loadMarket()" class="btn btn-primary" style="padding:10px 22px;border-radius:8px;font-size:14px;white-space:nowrap">🔍 Analizar</button>
+            </div>
+          </div>
+
+          <!-- Estado inicial -->
+          <div id="mkt-empty" style="text-align:center;padding:60px 20px;color:var(--tx2)">
+            <div style="font-size:48px;margin-bottom:14px">🔬</div>
+            <div style="font-size:16px;font-weight:700;margin-bottom:8px">Ingresá un producto para analizar</div>
+            <div style="font-size:13px;max-width:360px;margin:0 auto">Descubrí quién domina el mercado, cuáles son los productos top y cómo están distribuidos los precios.</div>
+          </div>
+
+          <!-- Loading -->
+          <div id="mkt-loading" style="display:none;text-align:center;padding:60px 20px;color:var(--tx2)">
+            <div style="font-size:28px;margin-bottom:12px;animation:spin 1s linear infinite;display:inline-block">↻</div>
+            <div style="font-size:14px;font-weight:600;margin-bottom:4px">Analizando mercado...</div>
+            <div style="font-size:12px" id="mkt-loading-txt">Consultando MercadoLibre</div>
+          </div>
+
+          <!-- Error -->
+          <div id="mkt-error" style="display:none;text-align:center;padding:40px;color:var(--neg)">
+            <div style="font-size:32px;margin-bottom:10px">⚠️</div>
+            <div id="mkt-error-txt" style="font-size:14px"></div>
+          </div>
+
+          <!-- Resultados -->
+          <div id="mkt-results" style="display:none">
+
+            <!-- Header con métricas rápidas -->
+            <div class="g4" id="mkt-kpis" style="margin-bottom:14px"></div>
+
+            <!-- Fila 1: Vendedores + Precios -->
+            <div class="g11">
+              <!-- Top vendedores -->
+              <div class="dcard">
+                <div class="ct">🏆 Market Share — Top Vendedores <span id="mkt-sellers-count" style="font-size:11px;color:var(--tx2);font-weight:400"></span></div>
+                <div style="height:180px;margin-bottom:14px"><canvas id="mkt-share-chart"></canvas></div>
+                <div style="overflow-x:auto">
+                  <table class="dtable">
+                    <thead><tr><th>#</th><th>Vendedor</th><th>Ventas</th><th>Listings</th><th>Precio Prom.</th><th>Market Share</th></tr></thead>
+                    <tbody id="mkt-sellers-table"></tbody>
+                  </table>
+                </div>
+              </div>
+              <!-- Análisis de precios -->
+              <div class="dcard">
+                <div class="ct">💰 Distribución de Precios</div>
+                <div style="height:180px;margin-bottom:14px"><canvas id="mkt-price-chart"></canvas></div>
+                <div id="mkt-price-stats"></div>
+              </div>
+            </div>
+
+            <!-- Fila 2: Productos más vendidos -->
+            <div class="dcard">
+              <div class="ct">🔥 Productos Más Vendidos <span id="mkt-products-count" style="font-size:11px;color:var(--tx2);font-weight:400"></span></div>
+              <div style="overflow-x:auto">
+                <table class="dtable">
+                  <thead><tr><th>Producto</th><th>Vendedor</th><th>Precio</th><th>Ventas</th><th>Condición</th><th>Ver</th></tr></thead>
+                  <tbody id="mkt-products-table"></tbody>
+                </table>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
       </div>
     </div>
 
@@ -894,6 +979,7 @@ function setScreen(name,el){
   if(name==='keywords') loadTrends();
   if(name==='categorias') loadCategories();
   if(name==='historial') loadHistorial();
+  if(name==='mercado'){document.getElementById('mkt-empty').style.display='block';document.getElementById('mkt-results').style.display='none';}
 }
 
 // ─ LOAD TRENDS REALES ─
@@ -1239,7 +1325,143 @@ function loadHistorial(){
     </div>`;
 }
 
-// ─ HERO BARS ─
+// ─ ANÁLISIS DE MERCADO ─
+let mktShareChart=null,mktPriceChart=null;
+
+async function loadMarket(){
+  const q=document.getElementById('mkt-input').value.trim();
+  const site=document.getElementById('mkt-site').value;
+  if(!q){document.getElementById('mkt-input').focus();return;}
+
+  // Estados UI
+  document.getElementById('mkt-empty').style.display='none';
+  document.getElementById('mkt-error').style.display='none';
+  document.getElementById('mkt-results').style.display='none';
+  document.getElementById('mkt-loading').style.display='block';
+
+  const loadTxts=['Consultando MercadoLibre...','Procesando vendedores...','Calculando precios...','Armando el análisis...'];
+  let lt=0;
+  const ltInt=setInterval(()=>{
+    document.getElementById('mkt-loading-txt').textContent=loadTxts[lt%loadTxts.length];lt++;
+  },900);
+
+  try{
+    const res=await fetch(`/api/market-analysis?q=${encodeURIComponent(q)}&site=${site}`);
+    if(!res.ok)throw new Error(`Error ${res.status}`);
+    const d=await res.json();
+    clearInterval(ltInt);
+    document.getElementById('mkt-loading').style.display='none';
+    renderMarket(d);
+  }catch(err){
+    clearInterval(ltInt);
+    document.getElementById('mkt-loading').style.display='none';
+    document.getElementById('mkt-error').style.display='block';
+    document.getElementById('mkt-error-txt').textContent='Error al obtener datos: '+err.message;
+  }
+}
+
+function renderMarket(d){
+  const c=gc();
+  const fmt=n=>n>=1000000?(n/1000000).toFixed(1)+'M':n>=1000?(n/1000).toFixed(1)+'K':n;
+  const fmtP=n=>n==null?'-':'$'+Number(n).toLocaleString('es-AR',{minimumFractionDigits:0,maximumFractionDigits:0});
+  const pa=d.price_analysis;
+  const sellers=d.sellers||[];
+  const products=d.top_products||[];
+
+  // KPIs
+  const totalSold=sellers.reduce((a,s)=>a+s.total_sold,0);
+  document.getElementById('mkt-kpis').innerHTML=`
+    <div class="dcard"><div class="m-lbl">Resultados Analizados</div><div class="m-val">${fmt(d.sample_size||0)}</div><div class="m-delta" style="color:var(--tx2)">de ${fmt(d.total_results||0)} totales</div></div>
+    <div class="dcard"><div class="m-lbl">Vendedores Únicos</div><div class="m-val">${sellers.length}</div><div class="m-delta" style="color:var(--tx2)">top 10 del mercado</div></div>
+    <div class="dcard"><div class="m-lbl">Precio Promedio</div><div class="m-val" style="color:var(--acc)">${pa?fmtP(pa.avg):'-'}</div><div class="m-delta" style="color:var(--tx2)">mediana ${pa?fmtP(pa.median):'-'}</div></div>
+    <div class="dcard"><div class="m-lbl">Rango de Precios</div><div class="m-val" style="font-size:16px">${pa?fmtP(pa.min):'-'} – ${pa?fmtP(pa.max):'-'}</div><div class="m-delta" style="color:${pa&&pa.outliers_count>0?'var(--yel)':'var(--pos)'}">${pa?pa.outliers_count:0} outliers detectados</div></div>
+  `;
+
+  // Gráfico market share (doughnut)
+  document.getElementById('mkt-sellers-count').textContent=`(${sellers.length} vendedores)`;
+  if(mktShareChart)mktShareChart.destroy();
+  const shEl=document.getElementById('mkt-share-chart');
+  if(shEl&&sellers.length>0){
+    const colors=[c.acc,c.sec,c.pur,c.yel,c.red,'#FF8C42','#4DA8DA','#34D399','#F87171','#94A3B8'];
+    mktShareChart=new Chart(shEl,{
+      type:'doughnut',
+      data:{
+        labels:sellers.map(s=>s.nickname),
+        datasets:[{data:sellers.map(s=>s.market_share),backgroundColor:colors.slice(0,sellers.length),borderWidth:0,hoverOffset:6}]
+      },
+      options:{responsive:true,maintainAspectRatio:false,cutout:'60%',plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>`${ctx.label}: ${ctx.parsed}%`}}}}
+    });
+  }
+
+  // Tabla de vendedores
+  document.getElementById('mkt-sellers-table').innerHTML=sellers.map((s,i)=>`
+    <tr>
+      <td><span style="font-size:11px;color:var(--tx3);font-family:'IBM Plex Mono',monospace">#${i+1}</span></td>
+      <td><b>${s.nickname}</b></td>
+      <td style="font-family:'IBM Plex Mono',monospace;color:var(--acc)">${fmt(s.total_sold)}</td>
+      <td style="font-family:'IBM Plex Mono',monospace">${s.listings}</td>
+      <td style="font-family:'IBM Plex Mono',monospace">${fmtP(s.avg_price)}</td>
+      <td>
+        <div style="display:flex;align-items:center;gap:6px">
+          <div class="sbar" style="flex:1;max-width:60px"><div class="sfill" style="width:${s.market_share}%"></div></div>
+          <span style="font-size:11px;color:var(--acc);font-weight:700;font-family:'IBM Plex Mono',monospace">${s.market_share}%</span>
+        </div>
+      </td>
+    </tr>
+  `).join('');
+
+  // Gráfico de distribución de precios (barras)
+  if(mktPriceChart)mktPriceChart.destroy();
+  const prEl=document.getElementById('mkt-price-chart');
+  if(prEl&&pa&&pa.distribution){
+    mktPriceChart=new Chart(prEl,{
+      type:'bar',
+      data:{
+        labels:pa.distribution.map(r=>`${fmtP(r.from)}`),
+        datasets:[{data:pa.distribution.map(r=>r.count),backgroundColor:c.acc+'88',borderColor:c.acc,borderWidth:1,borderRadius:5}]
+      },
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>`${ctx.parsed.y} productos`}}},scales:{x:{grid:{display:false},ticks:{color:c.tx,font:{size:9},maxRotation:30}},y:{grid:{color:c.grid},ticks:{color:c.tx,font:{size:10},stepSize:1}}}}
+    });
+  }
+
+  // Stats de precios
+  if(pa){
+    const hcl=pa.outliers_count>0?'var(--yel)':'var(--pos)';
+    document.getElementById('mkt-price-stats').innerHTML=`
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:4px">
+        <div style="background:var(--surf);border-radius:8px;padding:10px;text-align:center"><div style="font-size:10px;color:var(--tx3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:3px">Mínimo</div><div style="font-size:15px;font-weight:700;font-family:'IBM Plex Mono',monospace;color:var(--pos)">${fmtP(pa.min)}</div></div>
+        <div style="background:var(--surf);border-radius:8px;padding:10px;text-align:center"><div style="font-size:10px;color:var(--tx3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:3px">Máximo</div><div style="font-size:15px;font-weight:700;font-family:'IBM Plex Mono',monospace;color:var(--neg)">${fmtP(pa.max)}</div></div>
+        <div style="background:var(--surf);border-radius:8px;padding:10px;text-align:center"><div style="font-size:10px;color:var(--tx3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:3px">Promedio</div><div style="font-size:15px;font-weight:700;font-family:'IBM Plex Mono',monospace;color:var(--acc)">${fmtP(pa.avg)}</div></div>
+        <div style="background:var(--surf);border-radius:8px;padding:10px;text-align:center"><div style="font-size:10px;color:var(--tx3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:3px">Outliers</div><div style="font-size:15px;font-weight:700;font-family:'IBM Plex Mono',monospace;color:${hcl}">${pa.outliers_count}</div></div>
+      </div>
+    `;
+  }
+
+  // Tabla productos más vendidos
+  document.getElementById('mkt-products-count').textContent=`(top ${products.length})`;
+  document.getElementById('mkt-products-table').innerHTML=products.map((p,i)=>`
+    <tr>
+      <td>
+        <div style="display:flex;align-items:center;gap:8px">
+          ${p.thumbnail?`<img src="${p.thumbnail}" style="width:36px;height:36px;border-radius:6px;object-fit:cover;flex-shrink:0" onerror="this.style.display='none'">`:''}
+          <div>
+            <div style="font-size:12px;font-weight:600;line-height:1.3;max-width:280px">${p.title}</div>
+            <span style="font-size:10px;color:var(--tx3)">#${i+1} más vendido</span>
+          </div>
+        </div>
+      </td>
+      <td><span style="font-size:12px">${p.seller_nickname}</span></td>
+      <td style="font-family:'IBM Plex Mono',monospace;font-weight:700;color:var(--acc)">${fmtP(p.price)}</td>
+      <td><span style="font-family:'IBM Plex Mono',monospace;color:var(--pos);font-weight:700">${fmt(p.sold_quantity)}</span></td>
+      <td><span class="badge ${p.condition==='new'?'bg':'bb'}">${p.condition==='new'?'Nuevo':'Usado'}</span></td>
+      <td><a href="${p.permalink}" target="_blank" style="color:var(--acc);font-size:12px;text-decoration:none">↗ Ver</a></td>
+    </tr>
+  `).join('');
+
+  document.getElementById('mkt-results').style.display='block';
+}
+
+
 (function(){
   const bars=document.getElementById('heroBars');
   if(!bars)return;
