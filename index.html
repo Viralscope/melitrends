@@ -1346,7 +1346,23 @@ async function loadMarket(){
   },900);
 
   try{
-    const res=await fetch(`/api/market-analysis?q=${encodeURIComponent(q)}&site=${site}`);
+    // 1. Buscar directamente en MeLi desde el browser (sin restricciones de IP)
+    const meliUrl=`https://api.mercadolibre.com/sites/${site}/search?q=${encodeURIComponent(q)}&limit=50`;
+    const meliRes=await fetch(meliUrl);
+    if(!meliRes.ok)throw new Error(`MercadoLibre: ${meliRes.status}`);
+    const meliData=await meliRes.json();
+
+    // 2. Mandar los items al backend para procesar el análisis
+    const res=await fetch('/api/market-analysis',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        items: meliData.results||[],
+        query: q,
+        site: site,
+        total_results: meliData.paging?.total||0
+      })
+    });
     if(!res.ok)throw new Error(`Error ${res.status}`);
     const d=await res.json();
     clearInterval(ltInt);
