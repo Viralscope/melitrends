@@ -700,6 +700,100 @@ html,body{height:100%;background:var(--bg);color:var(--tx);font-family:'Sora',sa
       </div>
     </div>
 
+        <!-- CALCULADORA DE MARGEN -->
+        <div class="screen" id="sc-margen">
+          <div class="g11" style="margin-bottom:14px">
+            <div class="dcard">
+              <div class="ct">Calculadora de Margen Real MeLi</div>
+              <p style="font-size:13px;color:var(--tx2);margin-bottom:20px">Calculá tu margen neto real antes de publicar en MercadoLibre</p>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px">
+                <div><label style="font-size:12px;font-weight:600;color:var(--tx2);display:block;margin-bottom:6px">Precio de Costo (ARS)</label><input type="number" id="mg-costo" placeholder="ej: 15000" oninput="calcMargen()" style="width:100%;background:var(--surf);border:1px solid var(--bord);border-radius:8px;padding:10px 14px;color:var(--tx);font-family:'Sora',sans-serif;font-size:14px;outline:none"></div>
+                <div><label style="font-size:12px;font-weight:600;color:var(--tx2);display:block;margin-bottom:6px">Precio de Venta (ARS)</label><input type="number" id="mg-venta" placeholder="ej: 25000" oninput="calcMargen()" style="width:100%;background:var(--surf);border:1px solid var(--bord);border-radius:8px;padding:10px 14px;color:var(--tx);font-family:'Sora',sans-serif;font-size:14px;outline:none"></div>
+                <div><label style="font-size:12px;font-weight:600;color:var(--tx2);display:block;margin-bottom:6px">Categoría</label>
+                <select id="mg-cat" onchange="calcMargen()" style="width:100%;background:var(--surf);border:1px solid var(--bord);color:var(--tx);padding:10px 14px;border-radius:8px;font-family:'Sora',sans-serif;font-size:13px;outline:none">
+                  <option value="13">Ropa y Accesorios (13%)</option>
+                  <option value="13">Electrónica (13%)</option>
+                  <option value="13">Celulares (13%)</option>
+                  <option value="11">Hogar y Jardín (11%)</option>
+                  <option value="11">Deportes (11%)</option>
+                  <option value="11">Belleza (11%)</option>
+                  <option value="10">Alimentos (10%)</option>
+                  <option value="16">Inmuebles (16%)</option>
+                  <option value="11">Otras (11%)</option>
+                </select></div>
+                <div><label style="font-size:12px;font-weight:600;color:var(--tx2);display:block;margin-bottom:6px">Tipo de Publicación</label>
+                <select id="mg-tipo" onchange="calcMargen()" style="width:100%;background:var(--surf);border:1px solid var(--bord);color:var(--tx);padding:10px 14px;border-radius:8px;font-family:'Sora',sans-serif;font-size:13px;outline:none">
+                  <option value="0">Clásica (gratis)</option>
+                  <option value="0.015">Premium (1.5% extra)</option>
+                </select></div>
+                <div><label style="font-size:12px;font-weight:600;color:var(--tx2);display:block;margin-bottom:6px">Costo de Envío (ARS)</label><input type="number" id="mg-envio" placeholder="ej: 2000 (0 si es Full)" oninput="calcMargen()" style="width:100%;background:var(--surf);border:1px solid var(--bord);border-radius:8px;padding:10px 14px;color:var(--tx);font-family:'Sora',sans-serif;font-size:14px;outline:none"></div>
+                <div><label style="font-size:12px;font-weight:600;color:var(--tx2);display:block;margin-bottom:6px">Otros Costos (ARS)</label><input type="number" id="mg-otros" placeholder="ej: packaging, mano de obra" oninput="calcMargen()" style="width:100%;background:var(--surf);border:1px solid var(--bord);border-radius:8px;padding:10px 14px;color:var(--tx);font-family:'Sora',sans-serif;font-size:14px;outline:none"></div>
+              </div>
+            </div>
+            <div>
+              <div class="dcard" id="mg-result" style="margin-bottom:14px">
+                <div class="ct">Resultado</div>
+                <div style="text-align:center;padding:30px;color:var(--tx2)">
+                  <div style="font-size:36px;margin-bottom:10px">🧮</div>
+                  <div style="font-size:13px">Completá Precio de Costo y Precio de Venta para ver el análisis</div>
+                </div>
+              </div>
+              <div class="dcard" id="mg-recomendacion" style="display:none">
+                <div class="ct">💡 Recomendación</div>
+                <div id="mg-rec-text" style="font-size:13px;color:var(--tx2);line-height:1.6"></div>
+              </div>
+            </div>
+          </div>
+          <div class="dcard">
+            <div class="ct">Comisiones MeLi Argentina 2026</div>
+            <div style="overflow-x:auto"><table class="dtable">
+              <thead><tr><th>Categoría</th><th>Comisión</th><th>+IVA (21%)</th><th>Total real</th></tr></thead>
+              <tbody>
+                <tr><td>Ropa y Accesorios</td><td><span class="badge bg">13%</span></td><td>2.73%</td><td><b>15.73%</b></td></tr>
+                <tr><td>Electrónica / Celulares</td><td><span class="badge bg">13%</span></td><td>2.73%</td><td><b>15.73%</b></td></tr>
+                <tr><td>Hogar / Deportes / Belleza</td><td><span class="badge by">11%</span></td><td>2.31%</td><td><b>13.31%</b></td></tr>
+                <tr><td>Alimentos y Bebidas</td><td><span class="badge bg">10%</span></td><td>2.1%</td><td><b>12.1%</b></td></tr>
+                <tr><td>Inmuebles</td><td><span class="badge br">16%</span></td><td>3.36%</td><td><b>19.36%</b></td></tr>
+              </tbody>
+            </table></div>
+          </div>
+        </div>
+
+        <!-- COMPARADOR DE TRENDS POR PAÍS -->
+        <div class="screen" id="sc-compartrends">
+          <div class="dcard" style="margin-bottom:14px">
+            <div class="ct">Comparador de Trends por País</div>
+            <p style="font-size:13px;color:var(--tx2);margin-bottom:14px">Detectá productos que explotan en un país antes de que lleguen al tuyo</p>
+            <button onclick="loadComparTrends()" class="btn btn-primary btn-sm">↻ Cargar todos los países</button>
+          </div>
+          <div id="comparLoading" style="display:none;text-align:center;padding:40px;color:var(--tx2)">
+            <div style="font-size:24px;margin-bottom:10px;animation:spin 1s linear infinite;display:inline-block">↻</div>
+            <div style="font-size:13px">Cargando trends de 5 países...</div>
+          </div>
+          <div id="comparGrid"></div>
+          <div id="comparCross"></div>
+        </div>
+
+        <!-- HISTORIAL DE TRENDS -->
+        <div class="screen" id="sc-historial">
+          <div class="dcard" style="margin-bottom:14px">
+            <div class="ct">Historial de Trends</div>
+            <p style="font-size:13px;color:var(--tx2);margin-bottom:14px">Seguimiento diario de keywords para detectar tendencias en crecimiento</p>
+            <div style="display:flex;gap:8px">
+              <button onclick="saveTodayTrends()" class="btn btn-primary btn-sm">💾 Guardar Trends de Hoy</button>
+              <button onclick="loadHistorial()" class="btn btn-sm">↻ Actualizar</button>
+            </div>
+          </div>
+          <div id="historialContent">
+            <div style="text-align:center;padding:40px;color:var(--tx2)">
+              <div style="font-size:40px;margin-bottom:12px">📈</div>
+              <div style="font-size:15px;font-weight:600;margin-bottom:8px">Empezá a registrar trends</div>
+              <div style="font-size:13px;max-width:400px;margin:0 auto 20px">Hacé click en "Guardar Trends de Hoy" cada día para construir tu historial.</div>
+              <button onclick="saveTodayTrends()" class="btn btn-primary" style="padding:10px 24px;border-radius:9px;font-size:14px">💾 Guardar Trends de Hoy →</button>
+            </div>
+          </div>
+        </div>
+
     <!-- PDF MODAL -->
     <div class="pdf-ov" id="pdfOv">
       <div class="pdf-box">
